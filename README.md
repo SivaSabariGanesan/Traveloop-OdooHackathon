@@ -57,6 +57,26 @@ The project follows a modular **Repository-Service-Controller (RSC)** pattern in
 - **Services**: Contain the core business logic, orchestration of multiple repositories, and external API integrations (like Gemini).
 - **Repositories**: Direct abstraction over Prisma to handle all database operations.
 
+### 📂 Backend Folder Structure
+
+The backend is organized for scalability and clarity:
+
+```text
+backend/
+├── prisma/               # Database schema and migrations
+├── src/
+│   ├── config/           # Database and logger configurations
+│   ├── controllers/      # Route handlers (Request/Response logic)
+│   ├── middlewares/      # Auth, Error handling, and Metrics
+│   ├── repositories/     # Data access layer (Prisma queries)
+│   ├── routes/           # API endpoint definitions
+│   ├── services/         # Business logic layer
+│   ├── utils/            # Helpers (PDF export, AI integration, etc.)
+│   ├── validators/       # Zod validation schemas
+│   └── server.ts         # Application entry point
+└── tests/                # Unit and integration tests
+```
+
 ## 🛡️ Technical In-Depth
 
 ### 1. Full-Stack Financial Engine
