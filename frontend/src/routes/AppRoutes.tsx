@@ -6,6 +6,7 @@ import PlanTripPage from "../pages/PlanTripPage";
 import ItineraryBuilderPage from "../pages/ItineraryBuilderPage";
 import ProfilePage from "../pages/ProfilePage";
 import TripsPage from "../pages/TripsPage";
+import CommunityPage from "../pages/CommunityPage";
 
 const AppRoutes = () => {
   return (
@@ -17,6 +18,7 @@ const AppRoutes = () => {
       <Route path="/itinerary" element={<ItineraryBuilderPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/trips" element={<TripsPage />} />
+      <Route path="/community" element={<CommunityPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
