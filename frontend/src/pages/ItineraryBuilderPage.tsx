@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { itineraryApi, type Stop } from "../api/itinerary";
 import { tripsApi, type Trip } from "../api/trips";
+import { geminiApi, type StopSuggestion } from "../api/gemini";
 
 const ItineraryBuilderPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,11 @@ const ItineraryBuilderPage: React.FC = () => {
   const [addError, setAddError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
 
+  // AI stop suggestions state
+  const [stopSuggestions, setStopSuggestions] = useState<StopSuggestion[]>([]);
+  const [loadingStopSuggestions, setLoadingStopSuggestions] = useState(false);
+  const [stopSuggestionsLoaded, setStopSuggestionsLoaded] = useState(false);
+
   useEffect(() => {
     if (!tripId) { setIsLoading(false); return; }
     setIsLoading(true);
@@ -37,8 +43,29 @@ const ItineraryBuilderPage: React.FC = () => {
       .finally(() => setIsLoading(false));
   }, [tripId]);
 
+  const fetchStopSuggestions = useCallback(async (destination: string) => {
+    if (!destination.trim() || stopSuggestionsLoaded) return;
+    setLoadingStopSuggestions(true);
+    try {
+      const suggestions = await geminiApi.getStopSuggestions(destination);
+      setStopSuggestions(suggestions);
+      setStopSuggestionsLoaded(true);
+    } catch {
+      // silently fail
+    } finally {
+      setLoadingStopSuggestions(false);
+    }
+  }, [stopSuggestionsLoaded]);
+
+  useEffect(() => {
+    if (trip?.destination) {
+      fetchStopSuggestions(trip.destination);
+    }
+  }, [trip?.destination, fetchStopSuggestions]);
+
   const addSection = async () => {
-    if (!tripId || !newSection.location || !newSection.startDate || !newSection.endDate) return;
+    if (!tripId) { setAddError("No trip selected. Please open this page from a trip."); return; }
+    if (!newSection.location || !newSection.startDate || !newSection.endDate) { setAddError("Please fill in location and both dates."); return; }
     setAddError(null);
     setIsAdding(true);
     try {
@@ -48,7 +75,8 @@ const ItineraryBuilderPage: React.FC = () => {
         departureDate: new Date(newSection.endDate).toISOString(),
         notes: newSection.notes || undefined,
       });
-      setSections((prev) => [...prev, res.data.data]);
+      const newStop = res.data.data;
+      setSections((prev) => [...prev, newStop]);
       setNewSection({ title: "", location: "", startDate: "", endDate: "", notes: "" });
     } catch (err: any) {
       const msg = err.response?.data?.message
@@ -62,8 +90,38 @@ const ItineraryBuilderPage: React.FC = () => {
     }
   };
 
-  const removeSection = async (id: string) => {
-    if (!tripId || sections.length <= 1) return;
+  const [addingSuggestedStop, setAddingSuggestedStop] = useState<number | null>(null);
+  const [addedSuggestedStops, setAddedSuggestedStops] = useState<Set<number>>(new Set());
+
+  const addSuggestedStop = async (suggestion: StopSuggestion, index: number) => {
+    if (!tripId) return;
+    setAddingSuggestedStop(index);
+    try {
+      // Use trip dates as fallback, spread recommendedDays from trip start
+      const tripStart = trip?.startDate ? new Date(trip.startDate) : new Date();
+      const arrival = new Date(tripStart);
+      arrival.setDate(arrival.getDate() + sections.length * 3);
+      const departure = new Date(arrival);
+      departure.setDate(departure.getDate() + suggestion.recommendedDays);
+
+      const res = await itineraryApi.createStop(tripId, {
+        city: suggestion.city,
+        country: suggestion.country,
+        arrivalDate: arrival.toISOString(),
+        departureDate: departure.toISOString(),
+        notes: suggestion.highlights.join(" · "),
+      });
+      const newStop = res.data.data;
+      setSections((prev) => [...prev, newStop]);
+      setAddedSuggestedStops((prev) => new Set(prev).add(index));
+    } catch {
+      // silently fail
+    } finally {
+      setAddingSuggestedStop(null);
+    }
+  };
+
+  const removeSection = async (id: string) => {    if (!tripId || sections.length <= 1) return;
     try {
       await itineraryApi.deleteStop(tripId, id);
       setSections((prev) => prev.filter((s) => s.id !== id));
@@ -171,15 +229,18 @@ const ItineraryBuilderPage: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="rounded-3xl p-6 sm:p-8 transition-colors duration-300" style={{
-          background: dark ? "rgba(28,22,18,0.72)" : "rgba(250,246,240,0.55)",
-          backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-          border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(255,255,255,0.5)",
-          boxShadow: dark
-            ? "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)"
-            : "0 8px 32px rgba(198,93,58,0.12), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
-        }}>
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid-cols-1 max-w-[900px] mx-auto">
+
+          {/* Left — Itinerary */}
+          <div className="rounded-3xl p-6 sm:p-8 transition-colors duration-300" style={{
+            background: dark ? "rgba(28,22,18,0.72)" : "rgba(250,246,240,0.55)",
+            backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+            border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(255,255,255,0.5)",
+            boxShadow: dark
+              ? "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)"
+              : "0 8px 32px rgba(198,93,58,0.12), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
+          }}>
 
           {isLoading ? (
             <div className="flex justify-center py-16">
@@ -196,7 +257,7 @@ const ItineraryBuilderPage: React.FC = () => {
                       onDragStart={() => handleDragStart(index)}
                       onDragOver={(e) => handleDragOver(e, index)}
                       onDragEnd={handleDragEnd}
-                      className="rounded-2xl p-5 transition-all duration-200 cursor-move"
+                      className="rounded-2xl p-5 transition-all duration-200"
                       style={{
                         background: dark ? "rgba(42,33,26,0.7)" : "rgba(255,255,255,0.6)",
                         border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.5)",
@@ -208,7 +269,8 @@ const ItineraryBuilderPage: React.FC = () => {
                       {/* Section Header */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="cursor-grab active:cursor-grabbing">
+                          <div className="cursor-grab active:cursor-grabbing"
+                            onMouseDown={(e) => e.stopPropagation()}>
                             <svg className="w-6 h-6" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}
                               fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
@@ -218,15 +280,17 @@ const ItineraryBuilderPage: React.FC = () => {
                             Section {index + 1}
                           </h2>
                         </div>
-                        {sections.length > 1 && (
-                          <button onClick={() => removeSection(section.id)}
-                            className="p-1.5 rounded-lg transition-all duration-200 hover:opacity-70"
-                            style={{ background: "rgba(200,100,100,0.2)" }} aria-label="Remove section">
-                            <svg className="w-4 h-4" style={{ color: "#DC5555" }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {sections.length > 1 && (
+                            <button onClick={() => removeSection(section.id)}
+                              className="p-1.5 rounded-lg transition-all duration-200 hover:opacity-70"
+                              style={{ background: "rgba(200,100,100,0.2)" }} aria-label="Remove section">
+                              <svg className="w-4 h-4" style={{ color: "#DC5555" }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Title (city) */}
@@ -295,6 +359,101 @@ const ItineraryBuilderPage: React.FC = () => {
                   );
                 })}
 
+                {/* AI Places to Visit Suggestions */}
+                {(loadingStopSuggestions || stopSuggestions.length > 0) && (
+                  <div className="rounded-2xl p-5" style={{
+                    background: dark ? "rgba(42,33,26,0.5)" : "rgba(255,255,255,0.4)",
+                    border: dark ? "1px solid rgba(61,46,34,0.6)" : "1px solid rgba(198,93,58,0.2)",
+                    backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+                  }}>
+                    <div className="flex items-center gap-2 mb-4">
+                      <svg className="w-4 h-4" fill="none" stroke="#C65D3A" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      <span className="text-sm font-semibold" style={{ color: "#C65D3A" }}>
+                        Places to Visit{trip?.destination ? ` in ${trip.destination}` : ""}
+                      </span>
+                    </div>
+
+                    {loadingStopSuggestions ? (
+                      <div className="flex items-center gap-3 py-4">
+                        <div className="w-5 h-5 rounded-full border-2 animate-spin flex-shrink-0"
+                          style={{ borderColor: "#C65D3A", borderTopColor: "transparent" }} />
+                        <span className="text-sm" style={{ color: dark ? "rgba(240,230,211,0.5)" : "rgba(59,47,47,0.5)" }}>
+                          Finding places to visit...
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {stopSuggestions.map((s, i) => (
+                          <div key={i} className="flex items-start justify-between gap-3 p-3 rounded-xl transition-all"
+                            style={{
+                              background: dark ? "rgba(28,22,18,0.5)" : "rgba(250,246,240,0.7)",
+                              border: addedSuggestedStops.has(i)
+                                ? "1px solid rgba(198,93,58,0.5)"
+                                : dark ? "1px solid rgba(61,46,34,0.4)" : "1px solid rgba(230,211,179,0.4)",
+                            }}>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">                                <span className="text-sm font-semibold" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+                                  {s.city}
+                                </span>
+                                <span className="text-xs" style={{ color: dark ? "rgba(240,230,211,0.45)" : "rgba(59,47,47,0.45)" }}>
+                                  {s.country}
+                                </span>
+                                <span className="text-xs px-1.5 py-0.5 rounded-full"
+                                  style={{ background: "rgba(198,93,58,0.12)", color: "#C65D3A" }}>
+                                  {s.recommendedDays}d
+                                </span>
+                              </div>
+                              <p className="text-xs mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.55)" : "rgba(59,47,47,0.6)" }}>
+                                {s.description}
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {s.highlights.map((h, hi) => (
+                                  <span key={hi} className="text-xs px-2 py-0.5 rounded-full"
+                                    style={{ background: dark ? "rgba(61,46,34,0.6)" : "rgba(212,163,115,0.2)", color: dark ? "rgba(240,230,211,0.7)" : "rgba(59,47,47,0.7)" }}>
+                                    {h}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => addSuggestedStop(s, i)}
+                              disabled={addedSuggestedStops.has(i) || addingSuggestedStop === i}
+                              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                              style={{
+                                background: addedSuggestedStops.has(i) ? "rgba(198,93,58,0.15)" : "#C65D3A",
+                                color: addedSuggestedStops.has(i) ? "#C65D3A" : "#fff",
+                                opacity: addingSuggestedStop === i ? 0.6 : 1,
+                                cursor: addedSuggestedStops.has(i) ? "default" : "pointer",
+                              }}>
+                              {addingSuggestedStop === i ? (
+                                <div className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin" />
+                              ) : addedSuggestedStops.has(i) ? (
+                                <>
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  Added
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  Add
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* New section form — same card style */}
                 {tripId && (
                   <div className="rounded-2xl p-5" style={{
@@ -343,27 +502,29 @@ const ItineraryBuilderPage: React.FC = () => {
                         rows={2} className="w-full px-3 py-2 rounded-xl text-sm focus:outline-none resize-none" style={inputStyle} />
                     </div>
 
-                    <div className="flex justify-center">
+                    <div className="flex flex-col items-center gap-3">
                       {addError && (
-                        <p className="text-xs text-center mb-3 w-full rounded-lg px-3 py-2"
+                        <p className="text-xs text-center w-full rounded-lg px-3 py-2"
                           style={{ background: "rgba(220,85,85,0.1)", color: "#DC5555", border: "1px solid rgba(220,85,85,0.2)" }}>
                           {addError}
                         </p>
                       )}
-                      <button onClick={addSection}
-                        disabled={isAdding || !newSection.location || !newSection.startDate || !newSection.endDate}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:opacity-90"
+                      <button
+                        type="button"
+                        onClick={addSection}
+                        disabled={isAdding}
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200"
                         style={{
-                          background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.35)",
-                          border: dark ? "1px solid rgba(61,46,34,0.9)" : "1px solid rgba(255,255,255,0.45)",
-                          color: dark ? "#F0E6D3" : "#3B2F2F",
-                          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-                          opacity: (isAdding || !newSection.location || !newSection.startDate || !newSection.endDate) ? 0.5 : 1,
+                          background: "#C65D3A",
+                          color: "#fff",
+                          opacity: isAdding ? 0.45 : 1,
+                          cursor: isAdding ? "not-allowed" : "pointer",
+                          boxShadow: "0 4px 15px rgba(198,93,58,0.3)",
                         }}>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
-                        {isAdding ? "Adding..." : "Add another Section"}
+                        {isAdding ? "Adding..." : "Add Stop"}
                       </button>
                     </div>
                   </div>
@@ -391,6 +552,7 @@ const ItineraryBuilderPage: React.FC = () => {
               </div>
             </>
           )}
+        </div>
         </div>
       </main>
     </div>

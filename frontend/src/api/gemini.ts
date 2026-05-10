@@ -90,6 +90,14 @@ function getImage(category: string): string {
   return key ? categoryImages[key] : 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80';
 }
 
+export interface StopSuggestion {
+  city: string;
+  country: string;
+  description: string;
+  recommendedDays: number;
+  highlights: string[];
+}
+
 export const geminiApi = {
   getSuggestions: async (destination: string): Promise<ActivitySuggestion[]> => {
     const prompt = `List 6 diverse top activities and places to visit in ${destination}. 
@@ -115,5 +123,17 @@ Return a JSON array:
     const text = await ask(prompt);
     const json = extractJson(text, 'object');
     return JSON.parse(json) as DestinationInsights;
+  },
+
+  getStopSuggestions: async (destination: string): Promise<StopSuggestion[]> => {
+    const prompt = `Suggest 6 must-visit places, landmarks, or attractions in ${destination} that a traveler should add as stops in their itinerary.
+These should be specific places within ${destination}, not other cities.
+For each place include the name (as city field), a short area/district (as country field), a one-sentence description, recommended number of days or hours to spend (as a number of days, use 1 for half-day visits), and 3 short highlights.
+Return a JSON array:
+[{"city":"place name","country":"area or district","description":"one sentence","recommendedDays":1,"highlights":["highlight1","highlight2","highlight3"]}]`;
+
+    const text = await ask(prompt);
+    const json = extractJson(text, 'array');
+    return JSON.parse(json) as StopSuggestion[];
   },
 };

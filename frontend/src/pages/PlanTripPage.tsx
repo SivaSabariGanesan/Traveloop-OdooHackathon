@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import TripPlanningForm from "../components/trip/TripPlanningForm";
-import SuggestionsPanel from "../components/trip/SuggestionsPanel";
 import { tripsApi } from "../api/trips";
 
 const PlanTripPage: React.FC = () => {
@@ -112,25 +111,15 @@ const PlanTripPage: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-          {/* Left Section - Trip Planning Form (42%) */}
-          <div className="lg:col-span-5">
-            <TripPlanningForm
-              tripData={tripData}
-              setTripData={setTripData}
-              onSaveDraft={handleSaveDraft}
-              onCreateTrip={() => handleCreateTrip(false)}
-              isCreating={isCreating}
-              error={createError}
-            />
-          </div>
-
-          {/* Right Section - Suggestions Panel (58%) */}
-          <div className="lg:col-span-7">
-            <SuggestionsPanel destination={tripData.destination} />
-          </div>
-        </div>
+      <main className="max-w-[700px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <TripPlanningForm
+          tripData={tripData}
+          setTripData={setTripData}
+          onSaveDraft={handleSaveDraft}
+          onCreateTrip={() => handleCreateTrip(false)}
+          isCreating={isCreating}
+          error={createError}
+        />
       </main>
     </div>
   );

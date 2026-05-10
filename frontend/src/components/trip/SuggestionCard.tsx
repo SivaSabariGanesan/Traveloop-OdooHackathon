@@ -8,15 +8,14 @@ interface SuggestionCardProps {
   category: string;
   description: string;
   onAdd: () => void;
+  canAdd?: boolean;
+  isAdding?: boolean;
+  isAdded?: boolean;
 }
 
 const SuggestionCard: React.FC<SuggestionCardProps> = ({
-  image,
-  name,
-  rating,
-  category,
-  description,
-  onAdd,
+  image, name, rating, category, description, onAdd,
+  canAdd = false, isAdding = false, isAdded = false,
 }) => {
   const { dark } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
@@ -139,27 +138,35 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
         {/* Add Button */}
         <button
           onClick={onAdd}
+          disabled={isAdded || isAdding || !canAdd}
           className="w-full py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 hover:opacity-90"
           style={{
-            background: "#C65D3A",
-            color: "#FFFFFF",
-            boxShadow: "0 2px 8px rgba(198,93,58,0.25)",
+            background: isAdded ? "#4caf50" : canAdd ? "#C65D3A" : "rgba(198,93,58,0.2)",
+            color: canAdd || isAdded ? "#FFFFFF" : "#C65D3A",
+            boxShadow: canAdd ? "0 2px 8px rgba(198,93,58,0.25)" : "none",
+            cursor: !canAdd ? "default" : isAdded ? "default" : "pointer",
           }}
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            strokeWidth={2.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Add to Trip
+          {isAdded ? (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              Added
+            </>
+          ) : isAdding ? (
+            <>
+              <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              Adding...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              {canAdd ? "Add to Trip" : "Open a stop to add"}
+            </>
+          )}
         </button>
       </div>
     </div>

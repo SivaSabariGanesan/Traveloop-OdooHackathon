@@ -3,14 +3,18 @@ import { useTheme } from "../../context/ThemeContext";
 import SuggestionCard from "./SuggestionCard";
 import SmartInsightWidget from "./SmartInsightWidget";
 import { geminiApi, type ActivitySuggestion } from "../../api/gemini";
+import { itineraryApi } from "../../api/itinerary";
 
 interface SuggestionsPanelProps {
   destination: string;
+  tripId?: string;
+  stopId?: string;
+  onActivityAdded?: () => void;
 }
 
 const CATEGORIES = ["All", "Adventure", "Nature", "Culture", "Food", "Beach", "History", "Shopping", "Nightlife", "Wellness", "Sports", "Sightseeing", "Entertainment"];
 
-const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ destination }) => {
+const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ destination, tripId, stopId, onActivityAdded }) => {
   const { dark } = useTheme();
   const [suggestions, setSuggestions] = useState<ActivitySuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +22,8 @@ const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ destination }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [sortBy, setSortBy] = useState("popular");
+  const [addingId, setAddingId] = useState<number | null>(null);
+  const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!destination.trim()) { setSuggestions([]); return; }
@@ -51,6 +57,25 @@ const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ destination }) => {
       if (sortBy === "alphabetical") return a.name.localeCompare(b.name);
       return 0;
     });
+
+  const handleAdd = async (suggestion: ActivitySuggestion, index: number) => {
+    if (!tripId || !stopId) return;
+    setAddingId(index);
+    try {
+      await itineraryApi.createActivity(tripId, stopId, {
+        name: suggestion.name,
+        description: suggestion.description,
+        location: destination,
+        order: 0,
+      });
+      setAddedIds((prev) => new Set(prev).add(index));
+      onActivityAdded?.();
+    } catch (err) {
+      console.error('Failed to add activity:', err);
+    } finally {
+      setAddingId(null);
+    }
+  };
 
   const inputStyle = {
     background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.35)",
@@ -140,7 +165,11 @@ const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ destination }) => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filtered.map((s, i) => (
-              <SuggestionCard key={i} {...s} onAdd={() => {}} />
+              <SuggestionCard key={i} {...s}
+                isAdded={addedIds.has(i)}
+                isAdding={addingId === i}
+                canAdd={!!tripId && !!stopId}
+                onAdd={() => handleAdd(s, i)} />
             ))}
           </div>
         )}
