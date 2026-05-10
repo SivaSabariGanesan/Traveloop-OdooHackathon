@@ -7,6 +7,7 @@ import ItineraryBuilderPage from "../pages/ItineraryBuilderPage";
 import ItineraryViewPage from "../pages/ItineraryViewPage";
 import ProfilePage from "../pages/ProfilePage";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
+import TripsPage from "../pages/TripsPage";
 
 const AppRoutes = () => {
   return (
@@ -15,12 +16,10 @@ const AppRoutes = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-
-      {/* Protected routes */}
-      <Route path="/plan" element={<ProtectedRoute><PlanTripPage /></ProtectedRoute>} />
-      <Route path="/itinerary" element={<ProtectedRoute><ItineraryBuilderPage /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-
+      <Route path="/plan" element={<PlanTripPage />} />
+      <Route path="/itinerary" element={<ItineraryBuilderPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/trips" element={<TripsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
