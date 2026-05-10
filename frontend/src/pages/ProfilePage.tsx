@@ -455,9 +455,9 @@ const ProfilePage: React.FC = () => {
 const TripCard: React.FC<{ trip: Trip; dark: boolean }> = ({ trip, dark }) => {
   return (
     <div
-      className="rounded-2xl overflow-hidden relative group cursor-pointer transition-transform duration-200 hover:scale-[1.02]"
+      className="rounded-2xl overflow-hidden relative group cursor-pointer transition-transform duration-200 hover:scale-[1.02] flex flex-col"
       style={{
-        height: "240px",
+        height: "280px",
         background: dark ? "rgba(42,33,26,0.7)" : "rgba(255,255,255,0.6)",
         border: dark
           ? "1px solid rgba(61,46,34,0.8)"
@@ -470,7 +470,7 @@ const TripCard: React.FC<{ trip: Trip; dark: boolean }> = ({ trip, dark }) => {
       }}
     >
       {/* Trip Image */}
-      <div className="relative h-2/3 overflow-hidden">
+      <div className="relative h-[160px] overflow-hidden flex-shrink-0">
         <img
           src={trip.img}
           alt={trip.destination}
@@ -486,7 +486,7 @@ const TripCard: React.FC<{ trip: Trip; dark: boolean }> = ({ trip, dark }) => {
       </div>
 
       {/* Trip Info */}
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-1">
         <h3
           className="font-semibold text-base mb-1"
           style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
@@ -499,7 +499,7 @@ const TripCard: React.FC<{ trip: Trip; dark: boolean }> = ({ trip, dark }) => {
         >
           {trip.country}
         </p>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <p
             className="text-xs"
             style={{ color: dark ? "rgba(240,230,211,0.6)" : "rgba(59,47,47,0.6)" }}
@@ -507,10 +507,11 @@ const TripCard: React.FC<{ trip: Trip; dark: boolean }> = ({ trip, dark }) => {
             {trip.date} · {trip.duration}
           </p>
           <button
-            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:opacity-80"
+            className="px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 hover:opacity-90 flex-shrink-0"
             style={{
               background: "#C65D3A",
               color: "white",
+              boxShadow: "0 2px 8px rgba(198,93,58,0.3)",
             }}
           >
             View
