@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger';
 import authRoutes from './routes/auth.routes';
 import tripRoutes from './routes/trip.routes';
+import itineraryRoutes from './routes/itinerary.routes';
 import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
@@ -81,6 +82,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api', authRoutes); // For /api/users/me routes
 app.use('/api/trips', tripRoutes);
+app.use('/api/trips/:tripId/stops', itineraryRoutes); // /api/trips/:tripId/stops/...
 
 // Error handler (must be last)
 app.use(errorHandler);

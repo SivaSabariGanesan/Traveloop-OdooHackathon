@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import type { LoginFormValues, ValidationErrors } from "../utils/validation";
 import { validateLoginField, validateLoginForm } from "../utils/validation";
 
@@ -11,7 +12,12 @@ const LoginPage: React.FC = () => {
   const [touched, setTouched] = useState<Partial<Record<keyof LoginFormValues, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { dark } = useTheme();
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as any)?.from?.pathname || "/";
 
   const handleFieldValidation = (name: keyof LoginFormValues, value: string) => {
     const error = validateLoginField(name, value);
@@ -31,19 +37,25 @@ const LoginPage: React.FC = () => {
     handleFieldValidation(name as keyof LoginFormValues, value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formErrors = validateLoginForm(form);
     setErrors(formErrors);
     setTouched({ username: true, password: true });
 
-    if (Object.values(formErrors).some(Boolean)) {
-      return;
-    }
+    if (Object.values(formErrors).some(Boolean)) return;
 
     setIsSubmitting(true);
-    console.log("Login:", form);
-    window.setTimeout(() => setIsSubmitting(false), 600);
+    setApiError(null);
+    try {
+      // LoginPage uses "username" field but backend expects "email"
+      await login(form.username, form.password);
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      setApiError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClass =
@@ -213,6 +225,13 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div className="border-t my-1" style={{ borderColor: dark ? "rgba(61,46,34,0.8)" : "rgba(255,255,255,0.4)" }} />
+
+          {apiError && (
+            <p className="text-sm text-center rounded-xl px-4 py-2.5"
+              style={{ background: "rgba(220,85,85,0.1)", color: "#DC5555", border: "1px solid rgba(220,85,85,0.2)" }}>
+              {apiError}
+            </p>
+          )}
 
           <button 
             type="submit"

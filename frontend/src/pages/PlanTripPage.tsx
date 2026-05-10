@@ -4,6 +4,7 @@ import { useTheme } from "../context/ThemeContext";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import TripPlanningForm from "../components/trip/TripPlanningForm";
 import SuggestionsPanel from "../components/trip/SuggestionsPanel";
+import { tripsApi } from "../api/trips";
 
 const PlanTripPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,20 +16,44 @@ const PlanTripPage: React.FC = () => {
     endDate: "",
     coverImage: null as File | null,
   });
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  const handleBack = () => navigate(-1);
 
   const handleSaveDraft = () => {
-    console.log("Saving draft:", tripData);
-    // TODO: Implement save draft functionality
+    // Draft = create trip and stay on dashboard
+    handleCreateTrip(true);
   };
 
-  const handleCreateTrip = () => {
-    console.log("Creating trip:", tripData);
-    // Navigate to itinerary builder
-    navigate("/itinerary");
+  const handleCreateTrip = async (isDraft = false) => {
+    if (!tripData.tripName || !tripData.startDate || !tripData.endDate) {
+      setCreateError("Trip name, start date and end date are required.");
+      return;
+    }
+    setCreateError(null);
+    setIsCreating(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", tripData.tripName);
+      formData.append("startDate", tripData.startDate);
+      formData.append("endDate", tripData.endDate);
+      if (tripData.destination) formData.append("destination", tripData.destination);
+      if (tripData.coverImage) formData.append("coverPhoto", tripData.coverImage);
+
+      const res = await tripsApi.create(formData);
+      const trip = res.data.data.trip;
+
+      if (isDraft) {
+        navigate("/dashboard");
+      } else {
+        navigate(`/itinerary?tripId=${trip.id}`);
+      }
+    } catch (err: any) {
+      setCreateError(err.response?.data?.message || "Failed to create trip.");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -95,7 +120,9 @@ const PlanTripPage: React.FC = () => {
               tripData={tripData}
               setTripData={setTripData}
               onSaveDraft={handleSaveDraft}
-              onCreateTrip={handleCreateTrip}
+              onCreateTrip={() => handleCreateTrip(false)}
+              isCreating={isCreating}
+              error={createError}
             />
           </div>
 

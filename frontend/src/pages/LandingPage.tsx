@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+import { tripsApi, type Trip } from "../api/trips";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Static curated destinations (not from DB) ────────────────────────────────
 
 const regionalSelections = [
   { id: 1, name: "Bali", country: "Indonesia", img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=300&q=80" },
@@ -14,15 +16,9 @@ const regionalSelections = [
   { id: 5, name: "Amalfi", country: "Italy", img: "https://images.unsplash.com/photo-1533606688076-b6683a5f59f1?w=300&q=80" },
 ];
 
-const previousTrips = [
-  { id: 1, destination: "Paris", country: "France", date: "Mar 2024", duration: "7 days", img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&q=80" },
-  { id: 2, destination: "Tokyo", country: "Japan", date: "Nov 2023", duration: "10 days", img: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=80" },
-  { id: 3, destination: "New York", country: "USA", date: "Aug 2023", duration: "5 days", img: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400&q=80" },
-];
-
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
-const Navbar: React.FC<{ onMenuClick: () => void; dark: boolean }> = ({ onMenuClick, dark }) => (
+const Navbar: React.FC<{ onMenuClick: () => void; dark: boolean; isAuthenticated: boolean; onLogout: () => void }> = ({ onMenuClick, dark, isAuthenticated, onLogout }) => (
   <nav
     className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
     style={{
@@ -51,15 +47,24 @@ const Navbar: React.FC<{ onMenuClick: () => void; dark: boolean }> = ({ onMenuCl
 
     <div className="flex items-center gap-3">
       <ThemeToggle />
+      {isAuthenticated && (
+        <button
+          onClick={onLogout}
+          className="px-3 py-2 rounded-xl text-xs font-semibold hover:opacity-80 transition"
+          style={{ background: "rgba(198,93,58,0.12)", color: "#C65D3A" }}
+        >
+          Logout
+        </button>
+      )}
       <Link
-        to="/login"
+        to={isAuthenticated ? "/profile" : "/login"}
         className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition"
         style={{
           background: dark ? "rgba(42,33,26,0.9)" : "rgba(243,233,220,0.8)",
           border: "1.5px solid rgba(198,93,58,0.3)",
           boxShadow: "0 2px 8px rgba(198,93,58,0.1)",
         }}
-        aria-label="Profile"
+        aria-label={isAuthenticated ? "Profile" : "Login"}
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
           stroke="#C65D3A" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"
@@ -183,33 +188,59 @@ const RegionalCard: React.FC<{ name: string; country: string; img: string }> = (
 
 // ─── Trip Card ────────────────────────────────────────────────────────────────
 
-const TripCard: React.FC<{ destination: string; country: string; date: string; duration: string; img: string }> = (
-  { destination, country, date, duration, img }
-) => (
-  <div
-    className="flex-shrink-0 rounded-2xl overflow-hidden relative hover:scale-[1.02] transition-transform cursor-pointer"
-    style={{
-      width: "160px", height: "200px",
-      boxShadow: "0 6px 20px rgba(28,22,18,0.2)",
-      border: "1px solid rgba(255,255,255,0.12)",
-    }}
-  >
-    <img src={img} alt={destination} className="absolute inset-0 w-full h-full object-cover" />
-    <div className="absolute inset-0"
-      style={{ background: "linear-gradient(to top, rgba(28,22,18,0.85) 0%, transparent 55%)" }} />
-    <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-      <p className="text-white font-bold text-sm leading-tight">{destination}</p>
-      <p className="text-xs" style={{ color: "#E6D3B3" }}>{country}</p>
-      <p className="text-xs mt-1" style={{ color: "rgba(230,211,179,0.65)" }}>{date} · {duration}</p>
+const TripCard: React.FC<{ trip: Trip; onClick: () => void }> = ({ trip, onClick }) => {
+  const monthYear = new Date(trip.startDate).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const start = new Date(trip.startDate);
+  const end = new Date(trip.endDate);
+  const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+  const imgSrc = trip.coverPhoto ? `http://localhost:5000${trip.coverPhoto}` : "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80";
+
+  return (
+    <div
+      onClick={onClick}
+      className="flex-shrink-0 rounded-2xl overflow-hidden relative hover:scale-[1.02] transition-transform cursor-pointer"
+      style={{
+        width: "160px", height: "200px",
+        boxShadow: "0 6px 20px rgba(28,22,18,0.2)",
+        border: "1px solid rgba(255,255,255,0.12)",
+      }}
+    >
+      <img src={imgSrc} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0"
+        style={{ background: "linear-gradient(to top, rgba(28,22,18,0.85) 0%, transparent 55%)" }} />
+      <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
+        <p className="text-white font-bold text-sm leading-tight truncate">{trip.name}</p>
+        {trip.destination && <p className="text-xs truncate" style={{ color: "#E6D3B3" }}>{trip.destination}</p>}
+        <p className="text-xs mt-1" style={{ color: "rgba(230,211,179,0.65)" }}>{monthYear} · {days} day{days !== 1 ? "s" : ""}</p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ─── Landing Page ─────────────────────────────────────────────────────────────
 
 const LandingPage: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { dark } = useTheme();
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  const [userTrips, setUserTrips] = useState<Trip[]>([]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    tripsApi.getAll()
+      .then((res) => {
+        const { ongoing, upcoming, completed } = res.data.data;
+        // Show completed first, then ongoing/upcoming — matches "previous trips" intent
+        setUserTrips([...completed, ...ongoing, ...upcoming]);
+      })
+      .catch(() => { });
+  }, [isAuthenticated]);
 
   return (
     <div
@@ -223,7 +254,7 @@ const LandingPage: React.FC = () => {
         style={{ background: "#C65D3A" }} />
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Navbar onMenuClick={() => setSidebarOpen(true)} dark={dark} />
+      <Navbar onMenuClick={() => setSidebarOpen(true)} dark={dark} isAuthenticated={isAuthenticated} onLogout={handleLogout} />
       <Banner />
       <SearchBar dark={dark} />
 
@@ -232,9 +263,26 @@ const LandingPage: React.FC = () => {
         {regionalSelections.map((r) => <RegionalCard key={r.id} {...r} />)}
       </div>
 
-      <SectionHeader title="Previous Trips" dark={dark} />
+      <SectionHeader title={isAuthenticated ? "Your Trips" : "Popular Trips"} dark={dark} />
       <div className="flex gap-4 px-4 overflow-x-auto pb-1 scrollbar-hide">
-        {previousTrips.map((t) => <TripCard key={t.id} {...t} />)}
+        {isAuthenticated && userTrips.length > 0 ? (
+          userTrips.map((t) => (
+            <TripCard key={t.id} trip={t} onClick={() => navigate(`/itinerary?tripId=${t.id}`)} />
+          ))
+        ) : isAuthenticated ? (
+          <p className="text-sm px-1 py-4" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}>
+            No trips yet — plan your first one!
+          </p>
+        ) : (
+          // Fallback static cards for logged-out visitors
+          [
+            { id: "s1", name: "Paris", destination: "France", startDate: "2024-03-01", endDate: "2024-03-08", status: "COMPLETED" as const },
+            { id: "s2", name: "Tokyo", destination: "Japan", startDate: "2023-11-01", endDate: "2023-11-11", status: "COMPLETED" as const },
+            { id: "s3", name: "New York", destination: "USA", startDate: "2023-08-01", endDate: "2023-08-06", status: "COMPLETED" as const },
+          ].map((t) => (
+            <TripCard key={t.id} trip={t} onClick={() => navigate("/login")} />
+          ))
+        )}
       </div>
 
       {/* Plan a Trip FAB */}

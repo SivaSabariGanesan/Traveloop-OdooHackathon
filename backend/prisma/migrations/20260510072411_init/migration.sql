@@ -15,6 +15,8 @@ CREATE TABLE "users" (
     "city" TEXT,
     "country" TEXT,
     "role" "Role" NOT NULL DEFAULT 'USER',
+    "passwordResetToken" TEXT,
+    "passwordResetExpires" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -25,8 +27,6 @@ CREATE TABLE "users" (
 CREATE TABLE "trips" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "destination" TEXT,
-    "budget" DOUBLE PRECISION,
     "placeId" TEXT,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
