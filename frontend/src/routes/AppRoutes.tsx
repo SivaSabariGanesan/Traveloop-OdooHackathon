@@ -8,6 +8,7 @@ import ItineraryBuilderPage from "../pages/ItineraryBuilderPage";
 import ProfilePage from "../pages/ProfilePage";
 import TripsPage from "../pages/TripsPage";
 import SharedTripPage from "../pages/SharedTripPage";
+import NotesPage from "../pages/NotesPage";
 
 const AppRoutes = () => {
   return (
@@ -21,6 +22,7 @@ const AppRoutes = () => {
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/trips" element={<TripsPage />} />
       <Route path="/trip/:id" element={<SharedTripPage />} />
+      <Route path="/notes" element={<NotesPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

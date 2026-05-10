@@ -301,6 +301,14 @@ const TripCard: React.FC<{
             style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)", color: dark ? "#F0E6D3" : "#3B2F2F" }}>
             Edit
           </button>
+          {/* Notes button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate(`/notes?tripId=${trip.id}`); }}
+            className="py-2 px-3 rounded-lg text-xs font-medium hover:opacity-80 transition flex items-center gap-1"
+            style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)", color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+            Notes
+          </button>
           {/* Share button */}
           <button
             onClick={(e) => { e.stopPropagation(); navigate(`/trip/${trip.id}`); }}
