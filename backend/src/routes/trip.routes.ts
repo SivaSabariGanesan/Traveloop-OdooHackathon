@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { tripController } from '../controllers/trip.controller';
 import { authenticate } from '../middlewares/auth';
 import { validate } from '../middlewares/validate';
+import { handleCoverUpload } from '../middlewares/upload.js';
 import { createTripSchema, updateTripSchema } from '../validators/trip.validator';
 
 const router = Router();
@@ -61,7 +62,7 @@ router.get('/:id', tripController.getById);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -72,6 +73,12 @@ router.get('/:id', tripController.getById);
  *               name:
  *                 type: string
  *                 example: Summer Vacation 2026
+ *               destination:
+ *                 type: string
+ *                 example: Paris, France
+ *               budget:
+ *                 type: number
+ *                 example: 3000
  *               placeId:
  *                 type: string
  *                 example: place_123
@@ -88,14 +95,14 @@ router.get('/:id', tripController.getById);
  *                 example: A relaxing beach vacation
  *               coverPhoto:
  *                 type: string
- *                 example: https://example.com/photo.jpg
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Trip created successfully
  *       400:
  *         description: Validation error
  */
-router.post('/', validate(createTripSchema), tripController.create);
+router.post('/', handleCoverUpload, validate(createTripSchema), tripController.create);
 
 /**
  * @swagger
@@ -120,6 +127,12 @@ router.post('/', validate(createTripSchema), tripController.create);
  *             properties:
  *               name:
  *                 type: string
+ *               destination:
+ *                 type: string
+ *                 example: Paris, France
+ *               budget:
+ *                 type: number
+ *                 example: 3000
  *               startDate:
  *                 type: string
  *                 format: date
@@ -127,8 +140,6 @@ router.post('/', validate(createTripSchema), tripController.create);
  *                 type: string
  *                 format: date
  *               description:
- *                 type: string
- *               coverPhoto:
  *                 type: string
  *     responses:
  *       200:

@@ -4,6 +4,7 @@ import { authController } from '../controllers/auth.controller';
 import { authenticate } from '../middlewares/auth';
 import { validate } from '../middlewares/validate';
 import { registerSchema, loginSchema, updateProfileSchema, refreshTokenSchema } from '../validators/auth.validator';
+import { signAccessToken } from '../utils/jwt';
 
 const router = Router();
 
@@ -223,5 +224,44 @@ router.delete('/users/me', authenticate, authController.deleteAccount);
  *         description: Invalid or expired refresh token
  */
 router.post('/refresh', validate(refreshTokenSchema), authController.refreshToken);
+
+// DEV ONLY - dummy token for Swagger testing
+if (process.env.NODE_ENV !== 'production') {
+  /**
+   * @swagger
+   * /api/auth/dev-token:
+   *   get:
+   *     summary: "[DEV ONLY] Get a dummy JWT token for Swagger testing"
+   *     tags: [Auth]
+   *     responses:
+   *       200:
+   *         description: Dummy access token
+   */
+  router.get('/dev-token', async (_req, res, next) => {
+    try {
+      const { prisma } = await import('../config/db.js');
+
+      let user = await prisma.user.findUnique({ where: { id: 'dev-user-id' } });
+
+      if (!user) {
+        const { hashPassword } = await import('../utils/hash.js');
+        user = await prisma.user.create({
+          data: {
+            id: 'dev-user-id',
+            firstName: 'Dev',
+            lastName: 'User',
+            email: 'dev@example.com',
+            password: await hashPassword('devpassword'),
+          },
+        });
+      }
+
+      const token = signAccessToken({ id: user.id, role: user.role });
+      res.json({ status: 'success', data: { accessToken: token } });
+    } catch (error) {
+      next(error);
+    }
+  });
+}
 
 export default router;

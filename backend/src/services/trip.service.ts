@@ -26,7 +26,7 @@ export const tripService = {
     return trip;
   },
 
-  create: async (userId: string, data: CreateTripInput) => {
+  create: async (userId: string, data: CreateTripInput & { coverPhoto?: string }) => {
     const status = getStatus(data.startDate, data.endDate);
     return tripRepo.create({ ...data, userId, status });
   },
