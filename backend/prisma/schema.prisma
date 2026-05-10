@@ -29,9 +29,12 @@ model User {
   phone     String?
   city      String?
   country   String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role                     Role     @default(USER)
+  emailVerified            Boolean  @default(false)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
   trips Trip[]
 
@@ -55,6 +58,7 @@ model Trip {
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   sections Section[]
+  stops    Stop[]
 
   @@map("trips")
 }
@@ -73,18 +77,41 @@ model Section {
   @@map("sections")
 }
 
+model Stop {
+  id            String   @id @default(cuid())
+  tripId        String
+  city          String
+  country       String?
+  placeId       String?
+  arrivalDate   DateTime
+  departureDate DateTime
+  order         Int      @default(0)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  trip       Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  activities Activity[]
+
+  @@map("stops")
+}
+
 model Activity {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   description String?
   startTime   DateTime?
   endTime     DateTime?
   location    String?
-  sectionId   String
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  cost        Float?
+  sectionId   String?
+  stopId      String?
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section Section? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  stop    Stop?    @relation(fields: [stopId], references: [id], onDelete: Cascade)
+
   @@map("activities")
 }

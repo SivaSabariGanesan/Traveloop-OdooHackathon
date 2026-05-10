@@ -4,13 +4,16 @@ import RegisterPage from "../pages/RegisterPage";
 import LandingPage from "../pages/LandingPage";
 import PlanTripPage from "../pages/PlanTripPage";
 import ItineraryBuilderPage from "../pages/ItineraryBuilderPage";
+import ItineraryViewPage from "../pages/ItineraryViewPage";
 import ProfilePage from "../pages/ProfilePage";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 import TripsPage from "../pages/TripsPage";
 import CommunityPage from "../pages/CommunityPage";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />

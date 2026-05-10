@@ -6,6 +6,36 @@ import { AppError } from '../utils/AppError';
 
 export const authController = {
   /**
+   * Verify email with token
+   */
+  verifyEmail: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { token } = req.query;
+      if (!token || typeof token !== 'string') throw new AppError('Token is required', 400);
+
+      const result = await authService.verifyEmail(token);
+      res.status(200).json({ status: 'success', data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Resend verification email
+   */
+  resendVerification: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email } = req.body;
+      if (!email || typeof email !== 'string') throw new AppError('Email is required', 400);
+
+      const result = await authService.resendVerification(email.toLowerCase().trim());
+      res.status(200).json({ status: 'success', data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * Register a new user
    */
   register: async (req: Request, res: Response, next: NextFunction) => {

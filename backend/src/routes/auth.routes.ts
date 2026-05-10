@@ -88,6 +88,84 @@ router.post('/register', authLimiter, validate(registerSchema), authController.r
 
 /**
  * @swagger
+ * /api/auth/verify-email:
+ *   get:
+ *     summary: Verify email address
+ *     description: Verifies a user's email using the token sent to their inbox
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email verification token
+ *         example: a3f2c1d4e5b6...
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: Email verified successfully
+ *       400:
+ *         description: Invalid or expired token
+ */
+router.get('/verify-email', authController.verifyEmail);
+
+/**
+ * @swagger
+ * /api/auth/resend-verification:
+ *   post:
+ *     summary: Resend verification email
+ *     description: Sends a new verification email. Always returns success to prevent email enumeration.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *     responses:
+ *       200:
+ *         description: Verification email sent (if account exists and is unverified)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *       429:
+ *         description: Too many requests
+ */
+router.post('/resend-verification', authLimiter, authController.resendVerification);
+
+/**
+ * @swagger
  * /api/auth/login:
  *   post:
  *     summary: Login user

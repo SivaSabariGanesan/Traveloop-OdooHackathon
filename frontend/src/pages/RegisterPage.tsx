@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import ProfileImageUpload from "../components/ui/ProfileImageUpload";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import type { RegisterFormValues, ValidationErrors } from "../utils/validation";
 import { validateRegisterField, validateRegisterForm } from "../utils/validation";
 
@@ -15,7 +16,10 @@ const RegisterPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { dark } = useTheme();
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleFieldValidation = (name: keyof RegisterFormValues, value: string) => {
     const error = validateRegisterField(name, value);
@@ -35,27 +39,32 @@ const RegisterPage: React.FC = () => {
     handleFieldValidation(name as keyof RegisterFormValues, value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formErrors = validateRegisterForm(form);
     setErrors(formErrors);
-    setTouched({
-      firstName: true,
-      lastName: true,
-      email: true,
-      phone: true,
-      city: true,
-      country: true,
-      password: true,
-    });
+    setTouched({ firstName: true, lastName: true, email: true, phone: true, city: true, country: true, password: true });
 
-    if (Object.values(formErrors).some(Boolean)) {
-      return;
-    }
+    if (Object.values(formErrors).some(Boolean)) return;
 
     setIsSubmitting(true);
-    console.log("Register:", form, profileImage ? { profileImage: profileImage.name } : {});
-    window.setTimeout(() => setIsSubmitting(false), 600);
+    setApiError(null);
+    try {
+      await register({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password,
+        phone: form.phone || undefined,
+        city: form.city || undefined,
+        country: form.country || undefined,
+      });
+      navigate("/", { replace: true });
+    } catch (err: any) {
+      setApiError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClass =
@@ -361,6 +370,13 @@ const RegisterPage: React.FC = () => {
           </div>
 
           <div className="border-t my-1" style={{ borderColor: dark ? "rgba(61,46,34,0.8)" : "rgba(255,255,255,0.4)" }} />
+
+          {apiError && (
+            <p className="text-sm text-center rounded-xl px-4 py-2.5"
+              style={{ background: "rgba(220,85,85,0.1)", color: "#DC5555", border: "1px solid rgba(220,85,85,0.2)" }}>
+              {apiError}
+            </p>
+          )}
 
           <button 
             type="submit"
