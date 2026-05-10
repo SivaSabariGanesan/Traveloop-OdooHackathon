@@ -14,6 +14,8 @@ interface TripPlanningFormProps {
   setTripData: React.Dispatch<React.SetStateAction<TripData>>;
   onSaveDraft: () => void;
   onCreateTrip: () => void;
+  isCreating?: boolean;
+  error?: string | null;
 }
 
 const TripPlanningForm: React.FC<TripPlanningFormProps> = ({
@@ -21,6 +23,8 @@ const TripPlanningForm: React.FC<TripPlanningFormProps> = ({
   setTripData,
   onSaveDraft,
   onCreateTrip,
+  isCreating = false,
+  error = null,
 }) => {
   const { dark } = useTheme();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -333,6 +337,7 @@ const TripPlanningForm: React.FC<TripPlanningFormProps> = ({
         <div className="flex gap-4 pt-2">
           <button
             onClick={onSaveDraft}
+            disabled={isCreating}
             className="flex-1 py-3 px-6 rounded-xl font-medium transition-all duration-200 hover:opacity-80"
             style={{
               background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.35)",
@@ -340,21 +345,31 @@ const TripPlanningForm: React.FC<TripPlanningFormProps> = ({
               color: dark ? "#F0E6D3" : "#3B2F2F",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
+              opacity: isCreating ? 0.6 : 1,
             }}
           >
             Save Draft
           </button>
           <button
             onClick={onCreateTrip}
+            disabled={isCreating}
             className="flex-1 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90"
             style={{
               background: "#C65D3A",
               boxShadow: "0 4px 15px rgba(198,93,58,0.35)",
+              opacity: isCreating ? 0.8 : 1,
             }}
           >
-            Create Trip
+            {isCreating ? "Creating..." : "Create Trip"}
           </button>
         </div>
+
+        {error && (
+          <p className="text-sm text-center rounded-xl px-4 py-2.5 mt-2"
+            style={{ background: "rgba(220,85,85,0.1)", color: "#DC5555", border: "1px solid rgba(220,85,85,0.2)" }}>
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );
