@@ -18,7 +18,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<{ message: string; email: string }>;
   logout: () => void;
   error: string | null;
   clearError: () => void;
@@ -70,7 +70,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Login failed. Please try again.';
       setError(msg);
-      throw new Error(msg);
+      // Attach response so callers can check status code
+      const error: any = new Error(msg);
+      error.response = err.response;
+      throw error;
     }
   }, []);
 
@@ -78,10 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     try {
       const res = await api.post('/auth/register', data);
-      const { accessToken, refreshToken, user: userData } = res.data.data;
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      setUser(userData);
+      // Registration successful — user must verify email before logging in
+      return res.data.data as { message: string; email: string };
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Registration failed. Please try again.';
       setError(msg);

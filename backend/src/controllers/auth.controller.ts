@@ -6,14 +6,13 @@ import { AppError } from '../utils/AppError';
 
 export const authController = {
   /**
-   * Verify email with token
+   * Verify email with OTP
    */
-  verifyEmail: async (req: Request, res: Response, next: NextFunction) => {
+  verifyOtp: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { token } = req.query;
-      if (!token || typeof token !== 'string') throw new AppError('Token is required', 400);
-
-      const result = await authService.verifyEmail(token);
+      const { email, otp } = req.body;
+      if (!email || !otp) throw new AppError('Email and OTP are required', 400);
+      const result = await authService.verifyOtp(email, otp);
       res.status(200).json({ status: 'success', data: result });
     } catch (error) {
       next(error);
@@ -21,14 +20,13 @@ export const authController = {
   },
 
   /**
-   * Resend verification email
+   * Resend OTP
    */
-  resendVerification: async (req: Request, res: Response, next: NextFunction) => {
+  resendOtp: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email } = req.body;
-      if (!email || typeof email !== 'string') throw new AppError('Email is required', 400);
-
-      const result = await authService.resendVerification(email.toLowerCase().trim());
+      if (!email) throw new AppError('Email is required', 400);
+      const result = await authService.resendOtp(email.toLowerCase().trim());
       res.status(200).json({ status: 'success', data: result });
     } catch (error) {
       next(error);

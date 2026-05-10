@@ -80,9 +80,9 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api', authRoutes); // For /api/users/me routes
+app.use('/api', authRoutes);
 app.use('/api/trips', tripRoutes);
-app.use('/api/trips/:tripId/stops', itineraryRoutes); // /api/trips/:tripId/stops/...
+app.use('/api/trips/:tripId/stops', itineraryRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

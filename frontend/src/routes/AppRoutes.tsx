@@ -1,21 +1,20 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import VerifyEmailPage from "../pages/VerifyEmailPage";
 import LandingPage from "../pages/LandingPage";
 import PlanTripPage from "../pages/PlanTripPage";
 import ItineraryBuilderPage from "../pages/ItineraryBuilderPage";
-import ItineraryViewPage from "../pages/ItineraryViewPage";
 import ProfilePage from "../pages/ProfilePage";
-import ProtectedRoute from "../components/auth/ProtectedRoute";
 import TripsPage from "../pages/TripsPage";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/plan" element={<PlanTripPage />} />
       <Route path="/itinerary" element={<ItineraryBuilderPage />} />
       <Route path="/profile" element={<ProfilePage />} />

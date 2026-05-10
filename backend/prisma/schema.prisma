@@ -33,6 +33,8 @@ model User {
   emailVerified            Boolean  @default(false)
   emailVerificationToken   String?
   emailVerificationExpires DateTime?
+  emailOtp                 String?
+  emailOtpExpires          DateTime?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 

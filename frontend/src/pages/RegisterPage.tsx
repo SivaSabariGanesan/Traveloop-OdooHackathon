@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import ProfileImageUpload from "../components/ui/ProfileImageUpload";
 import { useTheme } from "../context/ThemeContext";
@@ -17,9 +17,51 @@ const RegisterPage: React.FC = () => {
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpSuccess, setOtpSuccess] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
   const { dark } = useTheme();
   const { register } = useAuth();
-  const navigate = useNavigate();
+
+  const handleVerifyOtp = async () => {
+    if (!registeredEmail || otp.length !== 6) return;
+    setIsVerifying(true);
+    setOtpError(null);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registeredEmail, otp }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Invalid OTP');
+      setOtpSuccess(true);
+    } catch (err: any) {
+      setOtpError(err.message);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!registeredEmail) return;
+    setResendStatus(null);
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/resend-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registeredEmail }),
+      });
+      setResendStatus("New code sent — check your inbox.");
+      setOtp("");
+      setOtpError(null);
+    } catch {
+      setResendStatus("Failed to resend. Try again.");
+    }
+  };
 
   const handleFieldValidation = (name: keyof RegisterFormValues, value: string) => {
     const error = validateRegisterField(name, value);
@@ -50,7 +92,7 @@ const RegisterPage: React.FC = () => {
     setIsSubmitting(true);
     setApiError(null);
     try {
-      await register({
+      const result = await register({
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
@@ -59,7 +101,7 @@ const RegisterPage: React.FC = () => {
         city: form.city || undefined,
         country: form.country || undefined,
       });
-      navigate("/", { replace: true });
+      setRegisteredEmail(result.email);
     } catch (err: any) {
       setApiError(err.message);
     } finally {
@@ -105,6 +147,98 @@ const RegisterPage: React.FC = () => {
   };
 
   const errorColor = "#DC5555";
+
+  // ─── OTP verification screen ─────────────────────────────────────────────────
+  if (registeredEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden transition-colors duration-300"
+        style={{ background: dark ? "linear-gradient(135deg, #1C1612 0%, #2A211A 50%, #3D2E22 100%)" : "linear-gradient(135deg, #FAF6F0 0%, #E6D3B3 50%, #D4A373 100%)" }}>
+        <div className="absolute top-5 right-5 z-10"><ThemeToggle /></div>
+        <div className="relative w-full max-w-md rounded-3xl px-10 py-10 z-10 text-center"
+          style={{
+            background: dark ? "rgba(28,22,18,0.72)" : "rgba(250,246,240,0.55)",
+            backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+            border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(255,255,255,0.5)",
+            boxShadow: dark ? "0 8px 32px rgba(0,0,0,0.4)" : "0 8px 32px rgba(198,93,58,0.12)",
+          }}>
+
+          {otpSuccess ? (
+            <>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                style={{ background: "rgba(100,180,100,0.15)" }}>
+                <svg className="w-8 h-8" fill="none" stroke="#4caf50" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold mb-3" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>Email verified!</h1>
+              <p className="text-sm mb-8" style={{ color: dark ? "rgba(240,230,211,0.6)" : "rgba(59,47,47,0.6)" }}>
+                Your account is ready. You can now log in.
+              </p>
+              <Link to="/login"
+                className="inline-block px-8 py-3 rounded-xl text-white font-semibold transition hover:opacity-85"
+                style={{ background: "#C65D3A", boxShadow: "0 4px 15px rgba(198,93,58,0.35)" }}>
+                Login now
+              </Link>
+            </>
+          ) : (
+            <>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                style={{ background: "rgba(198,93,58,0.12)" }}>
+                <svg className="w-8 h-8" fill="none" stroke="#C65D3A" viewBox="0 0 24 24" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold mb-2" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>Check your email</h1>
+              <p className="text-sm mb-1" style={{ color: dark ? "rgba(240,230,211,0.6)" : "rgba(59,47,47,0.6)" }}>
+                We sent a 6-digit code to
+              </p>
+              <p className="text-sm font-semibold mb-6" style={{ color: "#C65D3A" }}>{registeredEmail}</p>
+
+              {/* OTP input */}
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => { setOtp(e.target.value.replace(/\D/g, '')); setOtpError(null); }}
+                placeholder="000000"
+                className="w-full text-center text-3xl font-bold tracking-[0.5em] px-4 py-4 rounded-xl focus:outline-none mb-4"
+                style={{
+                  background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)",
+                  border: otpError ? "1px solid rgba(220,85,85,0.6)" : dark ? "1px solid rgba(61,46,34,0.9)" : "1px solid rgba(198,93,58,0.3)",
+                  color: dark ? "#F0E6D3" : "#3B2F2F",
+                }}
+              />
+
+              {otpError && (
+                <p className="text-sm mb-4 rounded-xl px-4 py-2"
+                  style={{ background: "rgba(220,85,85,0.1)", color: "#DC5555", border: "1px solid rgba(220,85,85,0.2)" }}>
+                  {otpError}
+                </p>
+              )}
+
+              <button
+                onClick={handleVerifyOtp}
+                disabled={isVerifying || otp.length !== 6}
+                className="w-full py-3.5 rounded-xl text-white font-semibold transition hover:opacity-85 mb-4"
+                style={{ background: "#C65D3A", opacity: (isVerifying || otp.length !== 6) ? 0.6 : 1 }}>
+                {isVerifying ? "Verifying..." : "Verify"}
+              </button>
+
+              {resendStatus ? (
+                <p className="text-xs" style={{ color: "#4caf50" }}>{resendStatus}</p>
+              ) : (
+                <button onClick={handleResendOtp} className="text-sm font-semibold hover:underline transition"
+                  style={{ color: dark ? "rgba(240,230,211,0.5)" : "rgba(59,47,47,0.5)" }}>
+                  Didn't receive it? Resend code
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -10,6 +10,8 @@ export interface Trip {
   description?: string;
   coverPhoto?: string;
   status: 'UPCOMING' | 'ONGOING' | 'COMPLETED';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TripsData {

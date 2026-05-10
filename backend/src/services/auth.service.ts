@@ -3,10 +3,10 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/
 import { hashPassword, comparePassword } from '../utils/hash';
 import { AppError } from '../utils/AppError';
 import { emailService } from './email.service';
-import { randomBytes } from 'crypto';
 import type { RegisterInput, LoginInput } from '../validators/auth.validator';
 
-const generateVerificationToken = () => randomBytes(32).toString('hex');
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 export const authService = {
   register: async (data: RegisterInput) => {
@@ -20,72 +20,67 @@ export const authService = {
     const hashedPassword = await hashPassword(data.password);
     const user = await userRepo.create({ ...data, password: hashedPassword });
 
-    // Send verification email (non-blocking — don't fail registration if email fails)
-    const token = generateVerificationToken();
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    await userRepo.setVerificationToken(user.id, token, expires);
-    emailService.sendVerificationEmail(user.email, token, user.firstName).catch((err) =>
-      console.error('Failed to send verification email:', err)
+    const otp = generateOtp();
+    const expires = new Date(Date.now() + OTP_TTL_MS);
+    await userRepo.setOtp(user.id, otp, expires);
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n🔑 DEV OTP for ${user.email}: ${otp}\n`);
+    }
+
+    emailService.sendOtpEmail(user.email, otp, user.firstName).catch((err) =>
+      console.error('Failed to send OTP email:', err)
     );
 
-    const { password, ...safeUser } = user;
-
-    return {
-      user: safeUser,
-      accessToken: signAccessToken({ id: user.id, role: user.role }),
-      refreshToken: signRefreshToken({ id: user.id }),
-    };
+    return { message: 'Registration successful. Check your email for the verification code.', email: user.email };
   },
 
-  verifyEmail: async (token: string) => {
-    const user = await userRepo.findByVerificationToken(token);
+  verifyOtp: async (email: string, otp: string) => {
+    const user = await userRepo.findByEmail(email);
 
-    if (!user || !user.emailVerificationExpires) {
-      throw new AppError('Invalid or expired verification token', 400);
-    }
-
-    if (user.emailVerified) {
-      throw new AppError('Email is already verified', 400);
-    }
-
-    if (user.emailVerificationExpires < new Date()) {
-      throw new AppError('Verification token has expired', 400);
-    }
+    if (!user) throw new AppError('User not found', 404);
+    if (user.emailVerified) throw new AppError('Email is already verified', 400);
+    if (!user.emailOtp || !user.emailOtpExpires) throw new AppError('No OTP found. Please request a new one.', 400);
+    if (user.emailOtpExpires < new Date()) throw new AppError('OTP has expired. Please request a new one.', 400);
+    if (user.emailOtp !== otp.trim()) throw new AppError('Invalid OTP', 400);
 
     await userRepo.markEmailVerified(user.id);
     return { message: 'Email verified successfully' };
   },
 
-  resendVerification: async (email: string) => {
+  resendOtp: async (email: string) => {
     const user = await userRepo.findByEmail(email);
 
     // Always return success to prevent email enumeration
-    if (!user || user.emailVerified) return { message: 'If that email exists and is unverified, a new link has been sent' };
+    if (!user || user.emailVerified) {
+      return { message: 'If that email exists and is unverified, a new code has been sent' };
+    }
 
-    const token = generateVerificationToken();
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await userRepo.setVerificationToken(user.id, token, expires);
+    const otp = generateOtp();
+    const expires = new Date(Date.now() + OTP_TTL_MS);
+    await userRepo.setOtp(user.id, otp, expires);
 
-    emailService.sendVerificationEmail(user.email, token, user.firstName).catch((err) =>
-      console.error('Failed to resend verification email:', err)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n🔑 DEV resend OTP for ${user.email}: ${otp}\n`);
+    }
+
+    emailService.sendOtpEmail(user.email, otp, user.firstName).catch((err) =>
+      console.error('Failed to resend OTP email:', err)
     );
 
-    return { message: 'If that email exists and is unverified, a new link has been sent' };
+    return { message: 'If that email exists and is unverified, a new code has been sent' };
   },
 
   login: async ({ email, password }: LoginInput) => {
     const user = await userRepo.findByEmail(email);
 
-    // Prevent timing attacks - always run bcrypt comparison
     const passwordToCompare = user?.password || '$2a$10$dummyhashtopreventtimingattack.invalidhashvalue';
     const isMatch = await comparePassword(password, passwordToCompare);
 
-    if (!user || !isMatch) {
-      throw new AppError('Invalid credentials', 401);
-    }
+    if (!user || !isMatch) throw new AppError('Invalid credentials', 401);
+    if (!user.emailVerified) throw new AppError('Please verify your email before logging in', 403);
 
     const { password: _, ...safeUser } = user;
-
     return {
       user: safeUser,
       accessToken: signAccessToken({ id: user.id, role: user.role }),
@@ -95,24 +90,11 @@ export const authService = {
 
   refreshAccessToken: async (refreshToken: string) => {
     try {
-      // Verify refresh token
       const decoded = verifyRefreshToken(refreshToken);
-
-      // Check if user still exists
       const user = await userRepo.findById(decoded.id);
-      if (!user) {
-        throw new AppError('User not found', 401);
-      }
-
-      // Generate new access token
-      const newAccessToken = signAccessToken({ id: user.id, role: user.role });
-
-      return {
-        accessToken: newAccessToken,
-      };
-    } catch (error) {
-      // Log error for debugging but return generic message
-      console.error('Refresh token verification failed:', error);
+      if (!user) throw new AppError('User not found', 401);
+      return { accessToken: signAccessToken({ id: user.id, role: user.role }) };
+    } catch {
       throw new AppError('Invalid or expired refresh token', 401);
     }
   },

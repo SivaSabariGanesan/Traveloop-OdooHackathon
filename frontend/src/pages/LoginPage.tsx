@@ -13,6 +13,8 @@ const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
   const { dark } = useTheme();
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -47,12 +49,19 @@ const LoginPage: React.FC = () => {
 
     setIsSubmitting(true);
     setApiError(null);
+    setUnverifiedEmail(null);
+    setResendStatus(null);
     try {
-      // LoginPage uses "username" field but backend expects "email"
       await login(form.username, form.password);
       navigate(from, { replace: true });
     } catch (err: any) {
-      setApiError(err.message);
+      const httpStatus = err.response?.status;
+      if (httpStatus === 403) {
+        setUnverifiedEmail(form.username);
+        setApiError("Please verify your email before logging in.");
+      } else {
+        setApiError(err.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -227,10 +236,36 @@ const LoginPage: React.FC = () => {
           <div className="border-t my-1" style={{ borderColor: dark ? "rgba(61,46,34,0.8)" : "rgba(255,255,255,0.4)" }} />
 
           {apiError && (
-            <p className="text-sm text-center rounded-xl px-4 py-2.5"
+            <div className="rounded-xl px-4 py-3 text-sm text-center"
               style={{ background: "rgba(220,85,85,0.1)", color: "#DC5555", border: "1px solid rgba(220,85,85,0.2)" }}>
-              {apiError}
-            </p>
+              <p>{apiError}</p>
+              {unverifiedEmail && (
+                <div className="mt-2">
+                  {resendStatus ? (
+                    <p className="text-xs" style={{ color: "#4caf50" }}>{resendStatus}</p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/resend-otp`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: unverifiedEmail }),
+                          });
+                          setResendStatus("Verification email sent — check your inbox.");
+                        } catch {
+                          setResendStatus("Failed to resend. Try again later.");
+                        }
+                      }}
+                      className="text-xs font-semibold underline mt-1"
+                      style={{ color: "#C65D3A" }}>
+                      Resend verification email
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           <button 
