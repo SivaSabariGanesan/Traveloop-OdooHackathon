@@ -489,15 +489,6 @@ const TripCard: React.FC<TripCardProps> = ({
               "linear-gradient(to top, rgba(28,22,18,0.7) 0%, transparent 50%)",
           }}
         />
-        {/* Status Badge */}
-        <div className="absolute top-3 right-3">
-          <span
-            className="px-3 py-1 rounded-full text-xs font-semibold text-white"
-            style={{ background: getStatusColor(trip.status) }}
-          >
-            {getStatusLabel(trip.status)}
-          </span>
-        </div>
       </div>
 
       {/* Content */}
@@ -534,38 +525,6 @@ const TripCard: React.FC<TripCardProps> = ({
         >
           {trip.startDate} – {trip.endDate} • {trip.duration} • {trip.budget} •{" "}
           {trip.travelers} Travelers
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span
-              className="text-xs font-semibold"
-              style={{ color: dark ? "rgba(240,230,211,0.7)" : "rgba(59,47,47,0.7)" }}
-            >
-              Progress
-            </span>
-            <span
-              className="text-xs font-semibold"
-              style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
-            >
-              {trip.progress}%
-            </span>
-          </div>
-          <div
-            className="h-2 rounded-full overflow-hidden"
-            style={{
-              background: dark ? "rgba(61,46,34,0.5)" : "rgba(230,211,179,0.4)",
-            }}
-          >
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{
-                width: `${trip.progress}%`,
-                background: getStatusColor(trip.status),
-              }}
-            />
-          </div>
         </div>
 
         {/* Quick Stats */}
@@ -623,7 +582,7 @@ const TripCard: React.FC<TripCardProps> = ({
               className="text-xs"
               style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
             >
-              💡 {trip.aiInsight}
+              {trip.aiInsight}
             </p>
           </div>
         )}
