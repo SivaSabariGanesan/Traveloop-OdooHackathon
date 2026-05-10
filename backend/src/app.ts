@@ -5,6 +5,9 @@ import morgan from 'morgan';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger';
+import { register } from './config/metrics';
+import { metricsMiddleware } from './middlewares/metricsMiddleware';
+import logger from './config/logger';
 import authRoutes from './routes/auth.routes';
 import tripRoutes from './routes/trip.routes';
 import itineraryRoutes from './routes/itinerary.routes';
@@ -34,9 +37,18 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(morgan('dev'));
-app.use(express.json({ limit: '10mb' })); // Limit payload size
+app.use(morgan('combined', {
+  stream: { write: (msg) => logger.http(msg.trim()) },
+}));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(metricsMiddleware);
+
+// Prometheus metrics endpoint — scraped by Prometheus
+app.get('/metrics', async (_req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
 
 // Swagger documentation routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

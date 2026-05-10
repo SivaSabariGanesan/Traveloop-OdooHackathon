@@ -1,35 +1,59 @@
 import winston from 'winston';
+import LokiTransport from 'winston-loki';
 
-const { combine, timestamp, printf, colorize, errors } = winston.format;
+const isDev = process.env.NODE_ENV !== 'production';
+const lokiUrl = process.env.LOKI_URL || 'http://localhost:3100';
+const appName = process.env.APP_NAME || 'traveloop';
 
-const logFormat = printf(({ level, message, timestamp, stack }) => {
-  return `${timestamp} [${level}]: ${stack || message}`;
-});
+const transports: winston.transport[] = [
+  new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.timestamp({ format: 'HH:mm:ss' }),
+      winston.format.printf(({ timestamp, level, message, ...meta }) => {
+        const extra = Object.keys(meta).length ? ' ' + JSON.stringify(meta) : '';
+        return `${timestamp} [${level}] ${message}${extra}`;
+      })
+    ),
+  }),
+];
 
-export const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: combine(
-    errors({ stack: true }),
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    logFormat
+// Only add Loki transport when Loki is configured
+if (process.env.LOKI_URL) {
+  try {
+    transports.push(
+      new LokiTransport({
+        host: lokiUrl,
+        labels: { app: appName, env: process.env.NODE_ENV || 'development' },
+        json: true,
+        format: winston.format.json(),
+        replaceTimestamp: true,
+        silenceErrors: true,
+        gracefulShutdown: false,
+        onConnectionError: (err) => {
+          const code = (err as any).code;
+          if (code === 'ECONNREFUSED') {
+            console.warn(`⚠️  Loki not reachable at ${lokiUrl} — logs won't be shipped`);
+          } else {
+            console.warn(`⚠️  Loki error: ${err.message}`);
+          }
+        },
+      })
+    );
+  } catch {
+    console.warn('⚠️  Failed to initialize Loki transport');
+  }
+}
+
+const logger = winston.createLogger({
+  level: isDev ? 'debug' : 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
   ),
-  transports: [
-    new winston.transports.Console({
-      format: combine(colorize(), logFormat),
-    }),
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-    }),
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-    }),
-  ],
+  defaultMeta: { service: appName },
+  transports,
 });
 
-// Create a stream for Morgan HTTP logging
-export const morganStream = {
-  write: (message: string) => {
-    logger.info(message.trim());
-  },
-};
+export default logger;
