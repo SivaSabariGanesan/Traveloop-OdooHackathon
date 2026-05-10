@@ -237,6 +237,7 @@ const TripCard: React.FC<{
   onEdit: () => void;
   onDelete: () => void;
 }> = ({ trip, dark, onView, onEdit, onDelete }) => {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const duration = getDuration(trip.startDate, trip.endDate);
   const imgSrc = trip.coverPhoto
@@ -300,6 +301,15 @@ const TripCard: React.FC<{
             style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)", color: dark ? "#F0E6D3" : "#3B2F2F" }}>
             Edit
           </button>
+          {/* Share button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate(`/trip/${trip.id}`); }}
+            className="py-2 px-3 rounded-lg text-xs font-medium hover:opacity-80 transition"
+            style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)", color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
           <div className="relative">
             <button onClick={(e) => { e.stopPropagation(); setMenuOpen((p) => !p); }}
               className="py-2 px-3 rounded-lg text-xs font-medium hover:opacity-80 transition"
@@ -307,12 +317,22 @@ const TripCard: React.FC<{
               •••
             </button>
             {menuOpen && (
-              <div className="absolute right-0 bottom-10 rounded-xl overflow-hidden z-10 min-w-[120px]"
+              <div className="absolute right-0 bottom-10 rounded-xl overflow-hidden z-10 min-w-[140px]"
                 style={{
                   background: dark ? "rgba(28,22,18,0.95)" : "rgba(250,246,240,0.97)",
                   border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.6)",
                   boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
                 }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    window.open(`${window.location.origin}/trip/${trip.id}`, "_blank");
+                  }}
+                  className="w-full px-4 py-2.5 text-xs text-left hover:opacity-70 transition"
+                  style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+                  Open Share Page
+                </button>
                 <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(); }}
                   className="w-full px-4 py-2.5 text-xs text-left hover:opacity-70 transition"
                   style={{ color: "#DC5555" }}>

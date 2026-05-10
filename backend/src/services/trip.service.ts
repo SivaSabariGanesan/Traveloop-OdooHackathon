@@ -52,4 +52,10 @@ export const tripService = {
     if (trip.userId !== userId) throw new AppError('Forbidden', 403);
     return tripRepo.delete(tripId);
   },
+
+  getPublic: async (tripId: string) => {
+    const trip = await tripRepo.findPublic(tripId);
+    if (!trip) throw new AppError('Trip not found', 404);
+    return trip;
+  },
 };

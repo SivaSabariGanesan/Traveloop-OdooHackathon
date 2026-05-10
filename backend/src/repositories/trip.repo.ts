@@ -15,6 +15,18 @@ export const tripRepo = {
       include: { sections: { include: { activities: true } } },
     }),
 
+  findPublic: (id: string) =>
+    prisma.trip.findUnique({
+      where: { id },
+      include: {
+        stops: {
+          orderBy: { order: 'asc' },
+          include: { activities: { orderBy: { order: 'asc' } } },
+        },
+        user: { select: { firstName: true, lastName: true } },
+      },
+    }),
+
   create: (data: CreateTripInput & { userId: string; status: string; coverPhoto?: string }) => {
     const { coverPhoto, ...rest } = data;
     return prisma.trip.create({

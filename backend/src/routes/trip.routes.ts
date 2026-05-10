@@ -7,7 +7,29 @@ import { createTripSchema, updateTripSchema } from '../validators/trip.validator
 
 const router = Router();
 
-// All trip routes require authentication
+// ─── Public route (no auth) ───────────────────────────────────────────────────
+
+/**
+ * @swagger
+ * /api/trips/{id}/public:
+ *   get:
+ *     summary: Get a public read-only view of a trip (no auth required)
+ *     tags: [Trips]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Public trip data with stops and activities
+ *       404:
+ *         description: Trip not found
+ */
+router.get('/:id/public', tripController.getPublic);
+
+// All other trip routes require authentication
 router.use(authenticate);
 
 /**

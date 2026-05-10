@@ -34,4 +34,7 @@ export const tripsApi = {
     api.patch<{ status: string; data: { trip: Trip } }>(`/trips/${id}`, data),
 
   delete: (id: string) => api.delete(`/trips/${id}`),
+
+  getPublic: (id: string) =>
+    api.get<{ status: string; data: { trip: Trip & { stops: import('./itinerary').Stop[]; user: { firstName: string; lastName: string } } } }>(`/trips/${id}/public`),
 };

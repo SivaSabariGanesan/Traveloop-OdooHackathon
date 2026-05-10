@@ -1,4 +1,4 @@
-import type { Response, NextFunction } from 'express';
+import type { Response, NextFunction, Request } from 'express';
 import { tripService } from '../services/trip.service';
 import type { AuthRequest } from '../middlewares/auth';
 import { AppError } from '../utils/AppError';
@@ -101,6 +101,19 @@ export const tripController = {
         status: 'success',
         message: 'Trip deleted successfully',
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Get public read-only trip (no auth required)
+   */
+  getPublic: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.params.id) throw new AppError('Trip ID is required', 400);
+      const trip = await tripService.getPublic(req.params.id);
+      res.status(200).json({ status: 'success', data: { trip } });
     } catch (error) {
       next(error);
     }
