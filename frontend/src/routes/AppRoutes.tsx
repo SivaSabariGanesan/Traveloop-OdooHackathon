@@ -10,6 +10,7 @@ import TripsPage from "../pages/TripsPage";
 import SharedTripPage from "../pages/SharedTripPage";
 import NotesPage from "../pages/NotesPage";
 import ChecklistPage from "../pages/ChecklistPage";
+import AdminDashboardPage from "../pages/AdminDashboardPage";
 
 const AppRoutes = () => {
   return (
@@ -25,6 +26,7 @@ const AppRoutes = () => {
       <Route path="/trip/:id" element={<SharedTripPage />} />
       <Route path="/notes" element={<NotesPage />} />
       <Route path="/checklist" element={<ChecklistPage />} />
+      <Route path="/admin" element={<AdminDashboardPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
