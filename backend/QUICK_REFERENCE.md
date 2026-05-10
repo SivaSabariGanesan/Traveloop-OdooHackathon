@@ -1,267 +1,224 @@
-# Quick Reference Card
+# 🚀 Quick Reference Guide
 
-## 🚀 Quick Start
+## Server is Running!
+
+**Open these URLs:**
+- 🏥 Health Check: http://localhost:5000/health
+- 📚 API Documentation: http://localhost:5000/api-docs
+- 📄 Swagger JSON: http://localhost:5000/api-docs.json
+
+---
+
+## 5-Minute Quick Test
+
+### 1. Register a User
+```bash
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test@1234",
+  "name": "Test User"
+}
+```
+
+### 2. Login
+```bash
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test@1234"
+}
+```
+
+**Copy the `accessToken` from response!**
+
+### 3. Create a Trip
+```bash
+POST http://localhost:5000/api/trips
+Authorization: Bearer <your-access-token>
+Content-Type: application/json
+
+{
+  "name": "Paris Vacation",
+  "startDate": "2026-06-01",
+  "endDate": "2026-06-10",
+  "description": "Summer trip to Paris"
+}
+```
+
+### 4. Get All Trips
+```bash
+GET http://localhost:5000/api/trips
+Authorization: Bearer <your-access-token>
+```
+
+---
+
+## Using Swagger UI (Easiest Way!)
+
+1. Open http://localhost:5000/api-docs
+2. Click on any endpoint (e.g., `POST /api/auth/register`)
+3. Click "Try it out"
+4. Fill in the request body
+5. Click "Execute"
+6. See the response!
+
+**For protected endpoints:**
+1. First login to get your token
+2. Click the "Authorize" button at the top
+3. Enter: `Bearer <your-access-token>`
+4. Click "Authorize"
+5. Now all protected endpoints will work!
+
+---
+
+## Common Issues & Solutions
+
+### Server won't start?
 ```bash
 cd backend
 bun install
-cp .env.example .env
-# Edit .env with your DATABASE_URL
-bun run generate
-bun run migrate
+bunx prisma generate
+bunx prisma migrate dev
 bun run dev
 ```
 
-## 📍 Important URLs
-- **API Base**: http://localhost:5000
-- **Swagger Docs**: http://localhost:5000/api-docs
-- **Health Check**: http://localhost:5000/health
-
-## 🔑 Auth Endpoints
-
-### Register
+### Database issues?
 ```bash
-POST /api/auth/register
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john@example.com",
-  "password": "SecurePass123!",
-  "phone": "+1234567890",      # optional
-  "city": "New York",          # optional
-  "country": "USA"             # optional
-}
+# Reset database
+rm dev.db
+bunx prisma migrate dev
 ```
 
-### Login
-```bash
-POST /api/auth/login
-{
-  "email": "john@example.com",
-  "password": "SecurePass123!"
-}
-```
+### Environment variables missing?
+Check `backend/.env` file exists and has:
+- JWT_SECRET (at least 32 characters)
+- JWT_REFRESH_SECRET (at least 32 characters)
+- DATABASE_URL="file:./dev.db"
 
-### Get Profile
-```bash
-GET /api/users/me
-Headers: Authorization: Bearer <token>
-```
+---
 
-### Update Profile
-```bash
-PATCH /api/users/me
-Headers: Authorization: Bearer <token>
-{
-  "firstName": "Jane",
-  "city": "Los Angeles"
-}
-```
-
-### Delete Account
-```bash
-DELETE /api/users/me
-Headers: Authorization: Bearer <token>
-```
-
-## 🗺️ Trip Endpoints
-
-### Get All Trips
-```bash
-GET /api/trips
-Headers: Authorization: Bearer <token>
-
-Response:
-{
-  "ongoing": [...],
-  "upcoming": [...],
-  "completed": [...]
-}
-```
-
-### Get Single Trip
-```bash
-GET /api/trips/:id
-Headers: Authorization: Bearer <token>
-```
-
-### Create Trip
-```bash
-POST /api/trips
-Headers: Authorization: Bearer <token>
-{
-  "name": "Summer Vacation",
-  "startDate": "2026-07-01",
-  "endDate": "2026-07-15",
-  "description": "Beach trip",    # optional
-  "coverPhoto": "url",            # optional
-  "placeId": "place_123"          # optional
-}
-```
-
-### Update Trip
-```bash
-PATCH /api/trips/:id
-Headers: Authorization: Bearer <token>
-{
-  "name": "Updated Name",
-  "description": "New description"
-}
-```
-
-### Delete Trip
-```bash
-DELETE /api/trips/:id
-Headers: Authorization: Bearer <token>
-```
-
-## 🛠️ Common Commands
+## Development Commands
 
 ```bash
-# Development
-bun run dev              # Start with hot reload
+# Start server
+bun run dev
 
-# Database
-bun run generate         # Generate Prisma client
-bun run migrate          # Run migrations
-bun run prisma           # Open Prisma Studio
+# View database in browser
+bunx prisma studio
 
-# Production
-bun start                # Start production server
+# Reset database
+bunx prisma migrate reset
+
+# Generate Prisma client
+bunx prisma generate
 ```
 
-## 🔐 Authorization Header Format
+---
+
+## Password Requirements
+
+When registering/updating users:
+- ✅ At least 8 characters
+- ✅ At least 1 uppercase letter
+- ✅ At least 1 lowercase letter
+- ✅ At least 1 number
+- ✅ At least 1 special character (!@#$%^&*)
+
+**Example valid password:** `Test@1234`
+
+---
+
+## Rate Limiting
+
+Auth endpoints are rate-limited:
+- **5 attempts per 15 minutes** per IP
+- Applies to: `/api/auth/login` and `/api/auth/register`
+- If you hit the limit, wait 15 minutes or restart the server
+
+---
+
+## Testing Checklist
+
+Use Swagger UI (http://localhost:5000/api-docs) to test:
+
+### Authentication:
+- [ ] Register new user
+- [ ] Login with credentials
+- [ ] Get current user profile
+- [ ] Update user profile
+- [ ] Refresh access token
+
+### Trips:
+- [ ] Create a trip
+- [ ] Get all trips
+- [ ] Get single trip
+- [ ] Update trip
+- [ ] Change trip status
+- [ ] Delete trip
+
+---
+
+## Project Structure
+
 ```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-## 📊 Response Status Codes
-
-| Code | Meaning |
-|------|---------|
-| 200 | Success |
-| 201 | Created |
-| 400 | Bad Request / Validation Error |
-| 401 | Unauthorized (no/invalid token) |
-| 403 | Forbidden (not allowed) |
-| 404 | Not Found |
-| 409 | Conflict (e.g., email exists) |
-| 500 | Server Error |
-
-## 🎯 Trip Status Logic
-
-| Status | Condition |
-|--------|-----------|
-| UPCOMING | startDate > now |
-| ONGOING | startDate ≤ now ≤ endDate |
-| COMPLETED | endDate < now |
-
-## 🗄️ Database Models
-
-```
-User
-├── id: string (cuid)
-├── firstName: string
-├── lastName: string
-├── email: string (unique)
-├── password: string (hashed)
-├── phone?: string
-├── city?: string
-├── country?: string
-├── role: USER | ADMIN
-└── trips: Trip[]
-
-Trip
-├── id: string (cuid)
-├── name: string
-├── placeId?: string
-├── startDate: DateTime
-├── endDate: DateTime
-├── description?: string
-├── coverPhoto?: string
-├── status: UPCOMING | ONGOING | COMPLETED
-├── userId: string
-├── user: User
-└── sections: Section[]
-
-Section
-├── id: string (cuid)
-├── name: string
-├── tripId: string
-├── order: number
-├── trip: Trip
-└── activities: Activity[]
-
-Activity
-├── id: string (cuid)
-├── name: string
-├── description?: string
-├── startTime?: DateTime
-├── endTime?: DateTime
-├── location?: string
-├── sectionId: string
-├── order: number
-└── section: Section
+backend/
+├── src/
+│   ├── config/         # Configuration files
+│   ├── controllers/    # Request handlers
+│   ├── middlewares/    # Auth, validation, error handling
+│   ├── repositories/   # Database queries
+│   ├── routes/         # API routes
+│   ├── services/       # Business logic
+│   ├── utils/          # Helper functions
+│   └── validators/     # Zod schemas
+├── prisma/
+│   └── schema.prisma   # Database schema
+├── tests/              # Manual test documentation
+└── .env                # Environment variables
 ```
 
-## ⚙️ Environment Variables
+---
 
-```env
-NODE_ENV=development
-PORT=5000
-DATABASE_URL=postgresql://user:pass@host:5432/db
-JWT_SECRET=your-secret-key
-JWT_REFRESH_SECRET=your-refresh-secret
-JWT_EXPIRES_IN=1d
-JWT_REFRESH_EXPIRES_IN=7d
-```
+## Need Help?
 
-## 🐛 Troubleshooting
+1. **Testing Guide:** `backend/TESTING_GUIDE.md`
+2. **Full Documentation:** `backend/IMPLEMENTATION_COMPLETE.md`
+3. **Security Details:** `backend/SECURITY_FIXES.md`
+4. **API Overview:** `backend/API_OVERVIEW.md`
 
-**Port in use:**
+---
+
+## Will it run on your friend's laptop?
+
+**Requirements:**
+- ✅ Bun installed (https://bun.sh)
+- ✅ Node.js 18+ (for tsx)
+- ✅ 100MB disk space
+- ✅ Any OS (Windows, Mac, Linux)
+
+**Setup on new machine:**
 ```bash
-# Change PORT in .env
-PORT=3000
+# 1. Clone/copy the project
+cd backend
+
+# 2. Install dependencies
+bun install
+
+# 3. Setup database
+bunx prisma generate
+bunx prisma migrate dev
+
+# 4. Start server
+bun run dev
 ```
 
-**Database connection failed:**
-```bash
-# Check DATABASE_URL in .env
-# Verify PostgreSQL is running
-```
+**That's it!** Server will run on http://localhost:5000
 
-**Prisma client not found:**
-```bash
-bun run generate
-```
+---
 
-**Migration failed:**
-```bash
-bunx prisma migrate reset  # WARNING: Deletes data
-bun run migrate
-```
-
-## 📚 Documentation Files
-
-- `README.md` - Full documentation
-- `SETUP.md` - Detailed setup guide
-- `API_OVERVIEW.md` - Architecture overview
-- `QUICK_REFERENCE.md` - This file
-- `swagger.example.md` - Swagger annotation examples
-
-## 🎨 Swagger UI Tips
-
-1. Open http://localhost:5000/api-docs
-2. Click "Authorize" button (top right)
-3. Register via `/api/auth/register`
-4. Copy `accessToken` from response
-5. Paste in authorization dialog
-6. Now you can test all protected endpoints!
-
-## 💡 Pro Tips
-
-- Use Swagger UI for testing (easier than curl)
-- Check Prisma Studio for database inspection
-- Winston logs are in `logs/` folder
-- All passwords are bcrypt hashed
-- JWT tokens expire (check expiry times)
-- Trip status updates automatically based on dates
+**Pro Tip:** Keep the Swagger UI open while developing - it's the easiest way to test your API!
