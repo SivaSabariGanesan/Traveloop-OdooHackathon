@@ -3,29 +3,88 @@ import { Link } from "react-router-dom";
 import AvatarUpload from "../components/ui/AvatarUpload";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import type { LoginFormValues, ValidationErrors } from "../utils/validation";
+import { validateLoginField, validateLoginForm } from "../utils/validation";
 
 const LoginPage: React.FC = () => {
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState<LoginFormValues>({ username: "", password: "" });
+  const [errors, setErrors] = useState<ValidationErrors<LoginFormValues>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof LoginFormValues, boolean>>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { dark } = useTheme();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleFieldValidation = (name: keyof LoginFormValues, value: string) => {
+    const error = validateLoginField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: error }));
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    handleFieldValidation(name as keyof LoginFormValues, value);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    handleFieldValidation(name as keyof LoginFormValues, value);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const formErrors = validateLoginForm(form);
+    setErrors(formErrors);
+    setTouched({ username: true, password: true });
+
+    if (Object.values(formErrors).some(Boolean)) {
+      return;
+    }
+
+    setIsSubmitting(true);
     console.log("Login:", form);
+    window.setTimeout(() => setIsSubmitting(false), 600);
   };
 
   const inputClass =
-    "w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition";
+    "w-full px-4 py-3 rounded-xl text-sm focus:outline-none transition";
 
-  const inputStyle = {
-    background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.35)",
-    border: dark ? "1px solid rgba(61,46,34,0.9)" : "1px solid rgba(255,255,255,0.45)",
-    color: dark ? "#F0E6D3" : "#3B2F2F",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
+  const getInputStyle = (field: keyof LoginFormValues) => {
+    const hasError = touched[field] && !!errors[field];
+    const isValid = touched[field] && !errors[field] && form[field].trim().length > 0;
+
+    const borderColor = hasError
+      ? "rgba(200, 100, 100, 0.6)"
+      : isValid
+      ? "rgba(100, 180, 100, 0.5)"
+      : dark
+      ? "rgba(61,46,34,0.9)"
+      : "rgba(255,255,255,0.45)";
+
+    const ringColor = hasError
+      ? "rgba(200, 100, 100, 0.3)"
+      : isValid
+      ? "rgba(100, 180, 100, 0.2)"
+      : "var(--primary-color)";
+
+    return {
+      background: hasError
+        ? dark
+          ? "rgba(100, 50, 50, 0.2)"
+          : "rgba(255, 200, 200, 0.15)"
+        : dark
+        ? "rgba(61,46,34,0.5)"
+        : "rgba(255,255,255,0.35)",
+      border: `1px solid ${borderColor}`,
+      color: dark ? "#F0E6D3" : "#3B2F2F",
+      backdropFilter: "blur(8px)",
+      WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `0 0 0 2px ${ringColor}`,
+    };
   };
+
+  const errorColor = "#DC5555";
 
   return (
     <div
@@ -74,15 +133,32 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="username" className="text-sm font-semibold"
               style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
               Username
             </label>
-            <input id="username" name="username" type="text" placeholder="Enter your username"
-              value={form.username} onChange={handleChange} autoComplete="username" required
-              className={inputClass} style={inputStyle} />
+            <input 
+              id="username" 
+              name="username" 
+              type="text" 
+              placeholder="Enter your username"
+              value={form.username} 
+              onChange={handleChange} 
+              onBlur={handleBlur}
+              autoComplete="username" 
+              aria-required="true"
+              aria-invalid={Boolean(touched.username && errors.username)}
+              aria-describedby={touched.username && errors.username ? "username-error" : undefined}
+              className={inputClass} 
+              style={getInputStyle("username")} 
+            />
+            {touched.username && errors.username ? (
+              <p id="username-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                {errors.username}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -90,17 +166,61 @@ const LoginPage: React.FC = () => {
               style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
               Password
             </label>
-            <input id="password" name="password" type="password" placeholder="Enter your password"
-              value={form.password} onChange={handleChange} autoComplete="current-password" required
-              className={inputClass} style={inputStyle} />
+            <div className="relative">
+              <input 
+                id="password" 
+                name="password" 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Enter your password"
+                value={form.password} 
+                onChange={handleChange} 
+                onBlur={handleBlur}
+                autoComplete="current-password" 
+                aria-required="true"
+                aria-invalid={Boolean(touched.password && errors.password)}
+                aria-describedby={touched.password && errors.password ? "password-error" : undefined}
+                className={inputClass} 
+                style={getInputStyle("password")} 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 focus:outline-none transition"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                style={{ color: dark ? "rgba(240,230,211,0.6)" : "rgba(59,47,47,0.5)" }}
+              >
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10 10 0 0 1 6.06 6.06M14.12 14.12a3 3 0 0 1-4.24-4.24" />
+                    <path d="M1 1l22 22" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {touched.password && errors.password ? (
+              <p id="password-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                {errors.password}
+              </p>
+            ) : null}
           </div>
 
           <div className="border-t my-1" style={{ borderColor: dark ? "rgba(61,46,34,0.8)" : "rgba(255,255,255,0.4)" }} />
 
-          <button type="submit"
-            className="w-full py-3.5 rounded-xl text-white font-semibold text-base hover:opacity-90 active:scale-[0.99] transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2"
-            style={{ background: "#C65D3A", boxShadow: "0 4px 15px rgba(198,93,58,0.35)" }}>
-            Login
+          <button 
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-3.5 rounded-xl text-white font-semibold text-base transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2"
+            style={{ 
+              background: "#C65D3A", 
+              boxShadow: "0 4px 15px rgba(198,93,58,0.35)",
+              opacity: isSubmitting ? 0.8 : 1,
+            }}>
+            {isSubmitting ? "Signing in..." : "Login"}
           </button>
         </form>
 

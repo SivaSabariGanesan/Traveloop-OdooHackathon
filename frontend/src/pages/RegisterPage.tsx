@@ -3,48 +3,96 @@ import { Link } from "react-router-dom";
 import AvatarUpload from "../components/ui/AvatarUpload";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
-
-interface RegisterForm {
-  firstName: string; lastName: string;
-  email: string; phone: string;
-  city: string; country: string;
-}
+import type { RegisterFormValues, ValidationErrors } from "../utils/validation";
+import { validateRegisterField, validateRegisterForm } from "../utils/validation";
 
 const RegisterPage: React.FC = () => {
-  const [form, setForm] = useState<RegisterForm>({
+  const [form, setForm] = useState<RegisterFormValues>({
     firstName: "", lastName: "", email: "", phone: "", city: "", country: "",
   });
+  const [errors, setErrors] = useState<ValidationErrors<RegisterFormValues>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof RegisterFormValues, boolean>>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { dark } = useTheme();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleFieldValidation = (name: keyof RegisterFormValues, value: string) => {
+    const error = validateRegisterField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: error }));
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    handleFieldValidation(name as keyof RegisterFormValues, value);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    handleFieldValidation(name as keyof RegisterFormValues, value);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const formErrors = validateRegisterForm(form);
+    setErrors(formErrors);
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      city: true,
+      country: true,
+    });
+
+    if (Object.values(formErrors).some(Boolean)) {
+      return;
+    }
+
+    setIsSubmitting(true);
     console.log("Register:", form);
+    window.setTimeout(() => setIsSubmitting(false), 600);
   };
 
   const inputClass =
-    "w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition";
+    "w-full px-4 py-3 rounded-xl text-sm focus:outline-none transition";
 
-  const inputStyle = {
-    background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.35)",
-    border: dark ? "1px solid rgba(61,46,34,0.9)" : "1px solid rgba(255,255,255,0.45)",
-    color: dark ? "#F0E6D3" : "#3B2F2F",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
+  const getInputStyle = (field: keyof RegisterFormValues) => {
+    const hasError = touched[field] && !!errors[field];
+    const isValid = touched[field] && !errors[field] && form[field].trim().length > 0;
+
+    const borderColor = hasError
+      ? "rgba(200, 100, 100, 0.6)"
+      : isValid
+      ? "rgba(100, 180, 100, 0.5)"
+      : dark
+      ? "rgba(61,46,34,0.9)"
+      : "rgba(255,255,255,0.45)";
+
+    const ringColor = hasError
+      ? "rgba(200, 100, 100, 0.3)"
+      : isValid
+      ? "rgba(100, 180, 100, 0.2)"
+      : "var(--primary-color)";
+
+    return {
+      background: hasError
+        ? dark
+          ? "rgba(100, 50, 50, 0.2)"
+          : "rgba(255, 200, 200, 0.15)"
+        : dark
+        ? "rgba(61,46,34,0.5)"
+        : "rgba(255,255,255,0.35)",
+      border: `1px solid ${borderColor}`,
+      color: dark ? "#F0E6D3" : "#3B2F2F",
+      backdropFilter: "blur(8px)",
+      WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `0 0 0 2px ${ringColor}`,
+    };
   };
 
-  const labelStyle = { color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" };
-
-  const fields: { id: keyof RegisterForm; label: string; type: string; placeholder: string; autoComplete: string }[] = [
-    { id: "firstName",  label: "First Name",    type: "text",  placeholder: "e.g. John",           autoComplete: "given-name" },
-    { id: "lastName",   label: "Last Name",     type: "text",  placeholder: "e.g. Doe",            autoComplete: "family-name" },
-    { id: "email",      label: "Email Address", type: "email", placeholder: "john@example.com",    autoComplete: "email" },
-    { id: "phone",      label: "Phone Number",  type: "tel",   placeholder: "+1 234 567 8900",     autoComplete: "tel" },
-    { id: "city",       label: "City",          type: "text",  placeholder: "e.g. New York",       autoComplete: "address-level2" },
-    { id: "country",    label: "Country",       type: "text",  placeholder: "e.g. United States",  autoComplete: "country-name" },
-  ];
+  const errorColor = "#DC5555";
 
   return (
     <div
@@ -93,48 +141,178 @@ const RegisterPage: React.FC = () => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
           <div className="grid grid-cols-2 gap-4">
-            {fields.slice(0, 2).map((f) => (
-              <div key={f.id} className="flex flex-col gap-1.5">
-                <label htmlFor={f.id} className="text-sm font-semibold" style={labelStyle}>{f.label}</label>
-                <input id={f.id} name={f.id} type={f.type} placeholder={f.placeholder}
-                  value={form[f.id]} onChange={handleChange} autoComplete={f.autoComplete}
-                  required={f.id === "firstName" || f.id === "lastName" || f.id === "email"}
-                  className={inputClass} style={inputStyle} />
-              </div>
-            ))}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="firstName" className="text-sm font-semibold" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                First Name
+              </label>
+              <input 
+                id="firstName" 
+                name="firstName" 
+                type="text" 
+                placeholder="e.g. John"
+                value={form.firstName} 
+                onChange={handleChange} 
+                onBlur={handleBlur}
+                autoComplete="given-name"
+                aria-required="true"
+                aria-invalid={Boolean(touched.firstName && errors.firstName)}
+                aria-describedby={touched.firstName && errors.firstName ? "firstName-error" : undefined}
+                className={inputClass} 
+                style={getInputStyle("firstName")} 
+              />
+              {touched.firstName && errors.firstName ? (
+                <p id="firstName-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                  {errors.firstName}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="lastName" className="text-sm font-semibold" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                Last Name
+              </label>
+              <input 
+                id="lastName" 
+                name="lastName" 
+                type="text" 
+                placeholder="e.g. Doe"
+                value={form.lastName} 
+                onChange={handleChange} 
+                onBlur={handleBlur}
+                autoComplete="family-name"
+                aria-required="true"
+                aria-invalid={Boolean(touched.lastName && errors.lastName)}
+                aria-describedby={touched.lastName && errors.lastName ? "lastName-error" : undefined}
+                className={inputClass} 
+                style={getInputStyle("lastName")} 
+              />
+              {touched.lastName && errors.lastName ? (
+                <p id="lastName-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                  {errors.lastName}
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {fields.slice(2, 4).map((f) => (
-              <div key={f.id} className="flex flex-col gap-1.5">
-                <label htmlFor={f.id} className="text-sm font-semibold" style={labelStyle}>{f.label}</label>
-                <input id={f.id} name={f.id} type={f.type} placeholder={f.placeholder}
-                  value={form[f.id]} onChange={handleChange} autoComplete={f.autoComplete}
-                  required={f.id === "email"}
-                  className={inputClass} style={inputStyle} />
-              </div>
-            ))}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className="text-sm font-semibold" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                Email Address
+              </label>
+              <input 
+                id="email" 
+                name="email" 
+                type="email" 
+                placeholder="john@example.com"
+                value={form.email} 
+                onChange={handleChange} 
+                onBlur={handleBlur}
+                autoComplete="email"
+                aria-required="true"
+                aria-invalid={Boolean(touched.email && errors.email)}
+                aria-describedby={touched.email && errors.email ? "email-error" : undefined}
+                className={inputClass} 
+                style={getInputStyle("email")} 
+              />
+              {touched.email && errors.email ? (
+                <p id="email-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                  {errors.email}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="phone" className="text-sm font-semibold" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                Phone Number
+              </label>
+              <input 
+                id="phone" 
+                name="phone" 
+                type="tel" 
+                placeholder="+1 234 567 8900"
+                value={form.phone} 
+                onChange={handleChange} 
+                onBlur={handleBlur}
+                autoComplete="tel"
+                aria-invalid={Boolean(touched.phone && errors.phone)}
+                aria-describedby={touched.phone && errors.phone ? "phone-error" : undefined}
+                className={inputClass} 
+                style={getInputStyle("phone")} 
+              />
+              {touched.phone && errors.phone ? (
+                <p id="phone-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                  {errors.phone}
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {fields.slice(4, 6).map((f) => (
-              <div key={f.id} className="flex flex-col gap-1.5">
-                <label htmlFor={f.id} className="text-sm font-semibold" style={labelStyle}>{f.label}</label>
-                <input id={f.id} name={f.id} type={f.type} placeholder={f.placeholder}
-                  value={form[f.id]} onChange={handleChange} autoComplete={f.autoComplete}
-                  className={inputClass} style={inputStyle} />
-              </div>
-            ))}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="city" className="text-sm font-semibold" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                City
+              </label>
+              <input 
+                id="city" 
+                name="city" 
+                type="text" 
+                placeholder="e.g. New York"
+                value={form.city} 
+                onChange={handleChange} 
+                onBlur={handleBlur}
+                autoComplete="address-level2"
+                aria-invalid={Boolean(touched.city && errors.city)}
+                aria-describedby={touched.city && errors.city ? "city-error" : undefined}
+                className={inputClass} 
+                style={getInputStyle("city")} 
+              />
+              {touched.city && errors.city ? (
+                <p id="city-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                  {errors.city}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="country" className="text-sm font-semibold" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                Country
+              </label>
+              <input 
+                id="country" 
+                name="country" 
+                type="text" 
+                placeholder="e.g. United States"
+                value={form.country} 
+                onChange={handleChange} 
+                onBlur={handleBlur}
+                autoComplete="country-name"
+                aria-invalid={Boolean(touched.country && errors.country)}
+                aria-describedby={touched.country && errors.country ? "country-error" : undefined}
+                className={inputClass} 
+                style={getInputStyle("country")} 
+              />
+              {touched.country && errors.country ? (
+                <p id="country-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                  {errors.country}
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div className="border-t my-1" style={{ borderColor: dark ? "rgba(61,46,34,0.8)" : "rgba(255,255,255,0.4)" }} />
 
-          <button type="submit"
-            className="w-full py-3.5 rounded-xl text-white font-semibold text-base hover:opacity-90 active:scale-[0.99] transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2"
-            style={{ background: "#C65D3A", boxShadow: "0 4px 15px rgba(198,93,58,0.35)" }}>
-            Register User
+          <button 
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-3.5 rounded-xl text-white font-semibold text-base transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2"
+            style={{ 
+              background: "#C65D3A", 
+              boxShadow: "0 4px 15px rgba(198,93,58,0.35)",
+              opacity: isSubmitting ? 0.8 : 1,
+            }}>
+            {isSubmitting ? "Creating account..." : "Register User"}
           </button>
         </form>
 
