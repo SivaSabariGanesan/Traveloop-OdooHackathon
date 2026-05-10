@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import AvatarUpload from "../components/ui/AvatarUpload";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import ProfileImageUpload from "../components/ui/ProfileImageUpload";
+import logoSrc from "../../public/Traveloop (1).png";
 import { useTheme } from "../context/ThemeContext";
 import type { RegisterFormValues, ValidationErrors } from "../utils/validation";
 import { validateRegisterField, validateRegisterForm } from "../utils/validation";
@@ -13,6 +14,7 @@ const RegisterPage: React.FC = () => {
   const [errors, setErrors] = useState<ValidationErrors<RegisterFormValues>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof RegisterFormValues, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
   const { dark } = useTheme();
 
   const handleFieldValidation = (name: keyof RegisterFormValues, value: string) => {
@@ -51,7 +53,7 @@ const RegisterPage: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    console.log("Register:", form);
+    console.log("Register:", form, profileImage ? { profileImage: profileImage.name } : {});
     window.setTimeout(() => setIsSubmitting(false), 600);
   };
 
@@ -128,8 +130,13 @@ const RegisterPage: React.FC = () => {
         }}
       >
         {/* Header */}
-        <div className="flex flex-col items-center gap-3 mb-8">
-          <AvatarUpload size="lg" />
+        <div className="flex flex-col items-center gap-4 mb-8">
+          <img
+            src={logoSrc}
+            alt="Traveloop Logo"
+            className="h-20 w-auto object-contain bg-transparent select-none"
+            style={{ mixBlendMode: "multiply", filter: dark ? "invert(1) brightness(2)" : "none" }}
+          />
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
               Create an account
@@ -142,6 +149,11 @@ const RegisterPage: React.FC = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+          {/* Profile photo upload */}
+          <div className="flex justify-center mb-1">
+            <ProfileImageUpload dark={dark} onChange={(file) => setProfileImage(file)} />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="firstName" className="text-sm font-semibold" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>

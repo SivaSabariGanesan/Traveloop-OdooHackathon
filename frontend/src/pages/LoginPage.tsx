@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import AvatarUpload from "../components/ui/AvatarUpload";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import logoSrc from "../../public/Traveloop (1).png";
 import { useTheme } from "../context/ThemeContext";
 import type { LoginFormValues, ValidationErrors } from "../utils/validation";
 import { validateLoginField, validateLoginForm } from "../utils/validation";
@@ -120,8 +120,13 @@ const LoginPage: React.FC = () => {
         }}
       >
         {/* Header */}
-        <div className="flex flex-col items-center gap-3 mb-8">
-          <AvatarUpload size="lg" />
+        <div className="flex flex-col items-center gap-4 mb-8">
+          <img
+            src={logoSrc}
+            alt="Traveloop Logo"
+            className="h-24 w-auto object-contain bg-transparent select-none"
+            style={{ mixBlendMode: "multiply", filter: dark ? "invert(1) brightness(2)" : "none" }}
+          />
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
               Welcome back

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <!-- Icon container: subtle brand-tinted rounded square, fully transparent background -->
+  <rect x="2" y="6" width="48" height="48" rx="10" fill="#C65D3A" fill-opacity="0.18"/>
+
+  <!-- Icon: chevron up (M6 9 l6-6 l6 6), vertical line (M12 15 v-6), circle at bottom (cx12 cy19 r2) -->
+  <!-- Scaled to fit 48x48 box centered at (26, 30) from original 24x24 viewBox -->
+  <g transform="translate(26,30) scale(1.6) translate(-12,-12)">
+    <path d="M6 9l6-6 6 6" stroke="#C65D3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M12 15v-6" stroke="#C65D3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="12" cy="19" r="2" stroke="#C65D3A" stroke-width="2"/>
+  </g>
+
+  <!-- Wordmark: using currentColor trick with two fills for adaptability -->
+  <text
+    x="62"
+    y="38"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="24"
+    font-weight="700"
+    letter-spacing="-0.5"
+    fill="#3B2F2F"
+  >Traveloop</text>
+</svg>
