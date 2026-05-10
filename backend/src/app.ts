@@ -12,6 +12,10 @@ import authRoutes from './routes/auth.routes';
 import tripRoutes from './routes/trip.routes';
 import itineraryRoutes from './routes/itinerary.routes';
 import geminiRoutes from './routes/gemini.routes';
+import noteRoutes from './routes/note.routes';
+import checklistRoutes from './routes/checklist.routes';
+import communityRoutes from './routes/community.routes';
+import invoiceRoutes from './routes/invoice.routes';
 import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
@@ -97,6 +101,10 @@ app.use('/api', authRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/trips/:tripId/stops', itineraryRoutes);
 app.use('/api/gemini', geminiRoutes);
+app.use('/api/trips/:tripId/notes', noteRoutes);
+app.use('/api/trips/:tripId/checklist', checklistRoutes);
+app.use('/api/community', communityRoutes);
+app.use('/api/trips/:tripId/invoice', invoiceRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

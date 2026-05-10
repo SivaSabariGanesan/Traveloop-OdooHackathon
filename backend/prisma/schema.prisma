@@ -38,7 +38,10 @@ model User {
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
-  trips Trip[]
+  trips      Trip[]
+  notes      Note[]
+  checklists Checklist[]
+  posts      Post[]
 
   @@map("users")
 }
@@ -61,6 +64,11 @@ model Trip {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   sections Section[]
   stops    Stop[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections  Section[]
+  notes     Note[]
+  checklist Checklist?
+  invoice   Invoice?
 
   @@map("trips")
 }
@@ -116,4 +124,83 @@ model Activity {
   stop    Stop?    @relation(fields: [stopId], references: [id], onDelete: Cascade)
 
   @@map("activities")
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  title      String
+  body       String
+  bookmarked Boolean  @default(false)
+  tripId     String
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("notes")
+}
+
+model Checklist {
+  id     String          @id @default(uuid())
+  tripId String          @unique
+  trip   Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  userId String
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items  ChecklistItem[]
+
+  @@map("checklists")
+}
+
+model ChecklistItem {
+  id          String    @id @default(uuid())
+  label       String
+  checked     Boolean   @default(false)
+  category    String    @default("General")
+  checklistId String
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@map("checklist_items")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  body      String
+  imageUrl  String?
+  likes     Int      @default(0)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("posts")
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  tripId      String        @unique
+  trip        Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  totalBudget Float         @default(0)
+  status      InvoiceStatus @default(PENDING)
+  items       InvoiceItem[]
+  createdAt   DateTime      @default(now())
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid())
+  category    String
+  description String
+  quantity    Float   @default(1)
+  unitCost    Float   @default(0)
+  amount      Float   @default(0)
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
 }

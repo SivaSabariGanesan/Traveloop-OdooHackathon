@@ -100,4 +100,55 @@ export const emailService = {
 
     console.log(`✅ Password reset OTP sent to ${email}`);
   },
+
+  /**
+   * Send invoice as PDF attachment
+   */
+  sendInvoice: async (
+    to: string,
+    tripName: string,
+    pdfBuffer: Buffer
+  ): Promise<void> => {
+    const name = appName();
+    const transporter = createTransport();
+
+    await transporter.sendMail({
+      from: `${name} <${getFrom()}>`,
+      to,
+      subject: `Your ${name} Invoice — ${tripName}`,
+      html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8">
+<style>
+  body{font-family:Arial,sans-serif;background:#FAF6F0;margin:0;padding:0}
+  .wrap{max-width:480px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(198,93,58,.10)}
+  .header{background:linear-gradient(135deg,#C65D3A 0%,#D4A373 100%);padding:32px;text-align:center}
+  .header h1{color:#fff;margin:0;font-size:22px;font-weight:700}
+  .body{padding:36px 32px}
+  .body p{color:#5a4a3a;font-size:15px;line-height:1.6;margin:0 0 16px}
+  .note{font-size:13px;color:#9a8070}
+  .footer{background:#F5EDE4;padding:16px 32px;text-align:center;font-size:12px;color:#9a8070}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header"><h1>✈️ ${name}</h1></div>
+  <div class="body">
+    <p>Your invoice for <strong>${tripName}</strong> is attached to this email as a PDF.</p>
+    <p class="note">If you have any questions, feel free to reach out to our support team.</p>
+  </div>
+  <div class="footer">© ${new Date().getFullYear()} ${name}. All rights reserved.</div>
+</div>
+</body>
+</html>`,
+      attachments: [
+        {
+          filename: `invoice-${tripName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
+    });
+
+    console.log(`✅ Invoice email sent to ${to}`);
+  },
 };
