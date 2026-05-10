@@ -8,11 +8,12 @@ import { validateRegisterField, validateRegisterForm } from "../utils/validation
 
 const RegisterPage: React.FC = () => {
   const [form, setForm] = useState<RegisterFormValues>({
-    firstName: "", lastName: "", email: "", phone: "", city: "", country: "",
+    firstName: "", lastName: "", email: "", phone: "", city: "", country: "", password: "",
   });
   const [errors, setErrors] = useState<ValidationErrors<RegisterFormValues>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof RegisterFormValues, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { dark } = useTheme();
 
   const handleFieldValidation = (name: keyof RegisterFormValues, value: string) => {
@@ -44,6 +45,7 @@ const RegisterPage: React.FC = () => {
       phone: true,
       city: true,
       country: true,
+      password: true,
     });
 
     if (Object.values(formErrors).some(Boolean)) {
@@ -299,6 +301,53 @@ const RegisterPage: React.FC = () => {
                 </p>
               ) : null}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="password" className="text-sm font-semibold" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+              Password
+            </label>
+            <div className="relative">
+              <input 
+                id="password" 
+                name="password" 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Create a strong password"
+                value={form.password} 
+                onChange={handleChange} 
+                onBlur={handleBlur}
+                autoComplete="new-password" 
+                aria-required="true"
+                aria-invalid={Boolean(touched.password && errors.password)}
+                aria-describedby={touched.password && errors.password ? "password-error" : undefined}
+                className={inputClass} 
+                style={getInputStyle("password")} 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 focus:outline-none transition"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                style={{ color: dark ? "rgba(240,230,211,0.6)" : "rgba(59,47,47,0.5)" }}
+              >
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10 10 0 0 1 6.06 6.06M14.12 14.12a3 3 0 0 1-4.24-4.24" />
+                    <path d="M1 1l22 22" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {touched.password && errors.password ? (
+              <p id="password-error" className="text-xs mt-1.5" style={{ color: errorColor }}>
+                {errors.password}
+              </p>
+            ) : null}
           </div>
 
           <div className="border-t my-1" style={{ borderColor: dark ? "rgba(61,46,34,0.8)" : "rgba(255,255,255,0.4)" }} />

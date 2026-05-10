@@ -10,6 +10,7 @@ export interface RegisterFormValues {
   phone: string;
   city: string;
   country: string;
+  password: string;
 }
 
 export type ValidationErrors<T> = Partial<Record<keyof T, string>>;
@@ -70,6 +71,12 @@ export const validateRegisterField = (
     return "";
   }
 
+  if (field === "password") {
+    if (!trimmed) return "Password is required.";
+    if (trimmed.length < 6) return "Password must be at least 6 characters.";
+    return "";
+  }
+
   return "";
 };
 
@@ -82,4 +89,5 @@ export const validateRegisterForm = (
   phone: validateRegisterField("phone", form.phone),
   city: "",
   country: "",
+  password: validateRegisterField("password", form.password),
 });
