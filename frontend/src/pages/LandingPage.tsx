@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
@@ -16,66 +15,109 @@ const regionalSelections = [
   { id: 5, name: "Amalfi", country: "Italy", img: "https://images.unsplash.com/photo-1533606688076-b6683a5f59f1?w=300&q=80" },
 ];
 
-// ─── Navbar ───────────────────────────────────────────────────────────────────
+const Navbar: React.FC<{ dark: boolean; isAuthenticated: boolean; onLogout: () => void }> = ({ dark, isAuthenticated, onLogout }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-const Navbar: React.FC<{ onMenuClick: () => void; dark: boolean; isAuthenticated: boolean; onLogout: () => void }> = ({ onMenuClick, dark, isAuthenticated, onLogout }) => (
-  <nav
-    className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
-    style={{
-      background: dark ? "rgba(28,22,18,0.88)" : "rgba(250,246,240,0.85)",
-      backdropFilter: "blur(16px)",
-      WebkitBackdropFilter: "blur(16px)",
-      borderBottom: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.6)",
-      boxShadow: "0 2px 12px rgba(198,93,58,0.07)",
-    }}
-  >
-    {/* Hamburger */}
-    <button
-      onClick={onMenuClick}
-      className="w-9 h-9 rounded-xl flex flex-col items-center justify-center gap-1.5 hover:opacity-70 transition focus:outline-none"
-      style={{ background: "rgba(198,93,58,0.1)" }}
-      aria-label="Open menu"
+  return (
+    <nav
+      className="sticky top-0 z-50 w-full"
+      style={{
+        background: dark ? "rgba(28,22,18,0.88)" : "rgba(250,246,240,0.85)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        borderBottom: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.6)",
+        boxShadow: "0 2px 12px rgba(198,93,58,0.07)",
+      }}
     >
-      <span className="block w-4 h-0.5 rounded-full" style={{ background: "#C65D3A" }} />
-      <span className="block w-4 h-0.5 rounded-full" style={{ background: "#C65D3A" }} />
-      <span className="block w-3 h-0.5 rounded-full" style={{ background: "#C65D3A" }} />
-    </button>
-
-    <span className="text-2xl font-bold tracking-tight" style={{ color: "#C65D3A" }}>
-      <img src="/Traveloop.png" alt="Traveloop" className="h-10" />
-    </span>
-
-    <div className="flex items-center gap-3">
-      <ThemeToggle />
-      {isAuthenticated && (
+      <div className="max-w-[1200px] mx-auto flex items-center justify-between px-4 sm:px-6 py-4 relative">
+        
+        {/* Mobile Hamburger */}
         <button
-          onClick={onLogout}
-          className="px-3 py-2 rounded-xl text-xs font-semibold hover:opacity-80 transition"
-          style={{ background: "rgba(198,93,58,0.12)", color: "#C65D3A" }}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="sm:hidden p-2 -ml-2 rounded-lg text-primary hover:bg-primary/10 transition"
+          aria-label="Toggle menu"
         >
-          Logout
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            {mobileMenuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
         </button>
+
+        {/* Logo */}
+        <Link to="/" className="flex-shrink-0 flex items-center">
+          <img src="/Traveloop.png" alt="Traveloop" className="h-8 md:h-10" />
+        </Link>
+
+        {/* Center Links (Professional Navigation - Desktop) */}
+        <div className="hidden sm:flex items-center gap-6 md:gap-10 font-medium text-sm" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+          <Link to="/" className="transition-colors hover:text-primary">Home</Link>
+          <Link to="/explore" className="transition-colors hover:text-primary">Explore</Link>
+          {isAuthenticated && <Link to="/trips" className="transition-colors hover:text-primary">My Trips</Link>}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+          {isAuthenticated && (
+            <button
+              onClick={onLogout}
+              className="hidden sm:block px-3 py-2 rounded-xl text-xs font-semibold hover:opacity-80 transition"
+              style={{ background: "rgba(198,93,58,0.12)", color: "#C65D3A" }}
+            >
+              Logout
+            </button>
+          )}
+          <Link
+            to={isAuthenticated ? "/profile" : "/login"}
+            className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center hover:opacity-80 transition"
+            style={{
+              background: dark ? "rgba(42,33,26,0.9)" : "rgba(243,233,220,0.8)",
+              border: "1.5px solid rgba(198,93,58,0.3)",
+              boxShadow: "0 2px 8px rgba(198,93,58,0.1)",
+            }}
+            aria-label={isAuthenticated ? "Profile" : "Login"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="#C65D3A" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"
+              className="w-4 h-4 sm:w-5 sm:h-5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+
+      {/* Mobile Dropdown Menu */}
+      {mobileMenuOpen && (
+        <div className="sm:hidden absolute top-full left-0 w-full border-b"
+          style={{
+            background: dark ? "rgba(28,22,18,0.98)" : "rgba(250,246,240,0.98)",
+            borderColor: dark ? "rgba(61,46,34,0.8)" : "rgba(230,211,179,0.6)",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+          }}>
+          <div className="flex flex-col px-4 py-4 space-y-4 font-medium" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="hover:text-primary transition-colors">Home</Link>
+            <Link to="/explore" onClick={() => setMobileMenuOpen(false)} className="hover:text-primary transition-colors">Explore</Link>
+            {isAuthenticated && (
+              <Link to="/trips" onClick={() => setMobileMenuOpen(false)} className="hover:text-primary transition-colors">My Trips</Link>
+            )}
+            {isAuthenticated && (
+              <button
+                onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                className="text-left text-primary hover:opacity-80 transition"
+              >
+                Logout
+              </button>
+            )}
+          </div>
+        </div>
       )}
-      <Link
-        to={isAuthenticated ? "/profile" : "/login"}
-        className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition"
-        style={{
-          background: dark ? "rgba(42,33,26,0.9)" : "rgba(243,233,220,0.8)",
-          border: "1.5px solid rgba(198,93,58,0.3)",
-          boxShadow: "0 2px 8px rgba(198,93,58,0.1)",
-        }}
-        aria-label={isAuthenticated ? "Profile" : "Login"}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-          stroke="#C65D3A" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"
-          className="w-5 h-5">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      </Link>
-    </div>
-  </nav>
-);
+    </nav>
+  );
+};
 
 // ─── Banner ───────────────────────────────────────────────────────────────────
 
@@ -117,7 +159,7 @@ const SearchBar: React.FC<{ dark: boolean }> = ({ dark }) => {
   };
 
   return (
-    <div className="mx-4 mt-4 flex items-center gap-2">
+    <div className="mx-4 mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
       <div className="flex-1 relative">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
           stroke="#C65D3A" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
@@ -133,12 +175,14 @@ const SearchBar: React.FC<{ dark: boolean }> = ({ dark }) => {
           style={btnStyle}
         />
       </div>
-      {["Group by", "Filter", "Sort by"].map((label) => (
-        <button key={label} className="px-3 py-2.5 rounded-xl text-xs font-semibold transition whitespace-nowrap hover:opacity-80"
-          style={btnStyle}>
-          {label}
-        </button>
-      ))}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 sm:pb-0 shrink-0">
+        {["Group by", "Filter", "Sort by"].map((label) => (
+          <button key={label} className="px-3 py-2.5 rounded-xl text-xs font-semibold transition whitespace-nowrap hover:opacity-80"
+            style={btnStyle}>
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
@@ -146,7 +190,7 @@ const SearchBar: React.FC<{ dark: boolean }> = ({ dark }) => {
 // ─── Section Header ───────────────────────────────────────────────────────────
 
 const SectionHeader: React.FC<{ title: string; dark: boolean }> = ({ title, dark }) => (
-  <div className="flex items-center gap-3 mx-4 mt-7 mb-3 w-full">
+  <div className="flex items-center gap-3 mx-4 mt-7 mb-3">
     <span
       className="text-base font-bold whitespace-nowrap flex-shrink-0"
       style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
@@ -220,7 +264,6 @@ const TripCard: React.FC<{ trip: Trip; onClick: () => void }> = ({ trip, onClick
 // ─── Landing Page ─────────────────────────────────────────────────────────────
 
 const LandingPage: React.FC = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { dark } = useTheme();
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -253,15 +296,16 @@ const LandingPage: React.FC = () => {
       <div className="fixed bottom-0 left-0 w-80 h-80 rounded-full opacity-15 blur-3xl pointer-events-none"
         style={{ background: "#C65D3A" }} />
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Navbar onMenuClick={() => setSidebarOpen(true)} dark={dark} isAuthenticated={isAuthenticated} onLogout={handleLogout} />
-      <Banner />
-      <SearchBar dark={dark} />
+      <Navbar dark={dark} isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+      
+      <main className="max-w-[1200px] mx-auto w-full">
+        <Banner />
+        <SearchBar dark={dark} />
 
-      <SectionHeader title="Top Regional Selections" dark={dark} />
-      <div className="flex gap-3 px-4 overflow-x-auto pb-1 scrollbar-hide">
-        {regionalSelections.map((r) => <RegionalCard key={r.id} {...r} />)}
-      </div>
+        <SectionHeader title="Top Regional Selections" dark={dark} />
+        <div className="flex gap-3 px-4 overflow-x-auto pb-4 scrollbar-hide">
+          {regionalSelections.map((r) => <RegionalCard key={r.id} {...r} />)}
+        </div>
 
       <SectionHeader title={isAuthenticated ? "Your Trips" : "Popular Trips"} dark={dark} />
       <div className="flex gap-4 px-4 overflow-x-auto pb-1 scrollbar-hide">
@@ -283,7 +327,8 @@ const LandingPage: React.FC = () => {
             <TripCard key={t.id} trip={t} onClick={() => navigate("/login")} />
           ))
         )}
-      </div>
+        </div>
+      </main>
 
       {/* Plan a Trip FAB */}
       <div className="fixed bottom-6 right-6 z-50">
@@ -294,10 +339,11 @@ const LandingPage: React.FC = () => {
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
-            className="w-4 h-4">
+            className="w-5 h-5">
             <path d="M12 5v14M5 12h14" />
           </svg>
-          Plan a trip
+          <span className="hidden sm:inline">Plan a trip</span>
+          <span className="sm:hidden">Plan</span>
         </Link>
       </div>
     </div>
