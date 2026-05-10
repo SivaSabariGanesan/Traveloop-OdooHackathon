@@ -4,14 +4,37 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger';
+import authRoutes from './routes/auth.routes';
+import tripRoutes from './routes/trip.routes';
+import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
 
+// Security middleware
 app.use(helmet());
-app.use(cors());
+
+// CORS configuration - Production style with explicit allowed origins
+const allowedOrigins = [
+  'http://localhost:5173', // Vite dev server
+  'http://localhost:3000', // React/Next.js dev server
+  'http://localhost:5000', // Backend server (for Swagger UI)
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, curl, etc.)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' })); // Limit payload size
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Swagger documentation routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -49,5 +72,13 @@ app.get('/api-docs.json', (_req, res) => {
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api', authRoutes); // For /api/users/me routes
+app.use('/api/trips', tripRoutes);
+
+// Error handler (must be last)
+app.use(errorHandler);
 
 export default app;

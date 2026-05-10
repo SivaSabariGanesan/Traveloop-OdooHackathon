@@ -1,13 +1,88 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TripStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  phone     String?
+  city      String?
+  country   String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trips Trip[]
+
+  @@map("users")
+}
+
+model Trip {
+  id          String     @id @default(cuid())
+  name        String
+  placeId     String?
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+  coverPhoto  String?
+  status      TripStatus @default(UPCOMING)
+  userId      String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections Section[]
+
+  @@map("trips")
+}
+
+model Section {
+  id        String   @id @default(cuid())
+  name      String
+  tripId    String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip       Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  activities Activity[]
+
+  @@map("sections")
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  startTime   DateTime?
+  endTime     DateTime?
+  location    String?
+  sectionId   String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  @@map("activities")
 }
