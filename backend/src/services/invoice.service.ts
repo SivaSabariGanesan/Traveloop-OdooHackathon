@@ -6,20 +6,18 @@ import { tripRepo } from '../repositories/trip.repo';
 import { userRepo } from '../repositories/user.repo';
 
 export const invoiceService = {
-  getOrCreate: (tripId: string, totalBudget = 0) =>
+  getOrCreate: (tripId: string, totalBudget?: number) =>
     invoiceRepo.upsert(tripId, totalBudget),
 
   get: async (tripId: string) => {
-    const invoice = await invoiceRepo.findByTrip(tripId);
-    if (!invoice) throw new AppError('Invoice not found', 404);
-    return invoice;
+    return invoiceRepo.upsert(tripId);
   },
 
   setBudget: (tripId: string, totalBudget: number) =>
     invoiceRepo.upsert(tripId, totalBudget),
 
   addItem: async (tripId: string, data: any) => {
-    const invoice = await invoiceRepo.upsert(tripId, 0);
+    const invoice = await invoiceRepo.upsert(tripId);
     return invoiceRepo.addItem(invoice.id, data);
   },
 

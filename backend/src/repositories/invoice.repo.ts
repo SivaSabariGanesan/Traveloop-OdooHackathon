@@ -10,12 +10,15 @@ export const invoiceRepo = {
       },
     }),
 
-  upsert: (tripId: string, totalBudget: number) =>
+  upsert: (tripId: string, totalBudget?: number) =>
     prisma.invoice.upsert({
       where: { tripId },
-      create: { tripId, totalBudget },
-      update: { totalBudget },
-      include: { items: true },
+      create: { tripId, totalBudget: totalBudget ?? 0 },
+      update: totalBudget !== undefined ? { totalBudget } : {},
+      include: {
+        items: { orderBy: { id: 'asc' } },
+        trip: { select: { name: true, startDate: true, endDate: true } },
+      },
     }),
 
   addItem: (

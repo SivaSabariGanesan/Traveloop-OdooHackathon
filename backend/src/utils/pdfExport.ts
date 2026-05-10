@@ -114,6 +114,7 @@ export const generateInvoicePDF = async (invoice: any): Promise<Buffer> => {
 
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: 'D:\\Traveloop-Odoo\\backend\\chrome\\win64-150.0.7834.0\\chrome-win64\\chrome.exe',
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   try {

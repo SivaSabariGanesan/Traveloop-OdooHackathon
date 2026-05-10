@@ -38,7 +38,7 @@ const TripsPage: React.FC = () => {
   useEffect(() => {
     tripsApi.getAll()
       .then((res) => setTrips(res.data.data))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -68,7 +68,7 @@ const TripsPage: React.FC = () => {
         upcoming: prev.upcoming.filter((t) => t.id !== id),
         completed: prev.completed.filter((t) => t.id !== id),
       }));
-    } catch {}
+    } catch { }
   };
 
   const inputStyle = {
@@ -290,8 +290,8 @@ const TripCard: React.FC<{
 
         {/* Quick Actions */}
         <div className="flex items-center justify-between mt-auto pt-3 relative"
-             style={{ borderTop: dark ? "1px solid rgba(61,46,34,0.6)" : "1px solid rgba(230,211,179,0.4)" }}>
-          
+          style={{ borderTop: dark ? "1px solid rgba(61,46,34,0.6)" : "1px solid rgba(230,211,179,0.4)" }}>
+
           <div className="flex gap-1.5 -ml-2">
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/notes?tripId=${trip.id}`); }}
@@ -327,7 +327,7 @@ const TripCard: React.FC<{
                 className="p-1.5 rounded-md transition hover:bg-secondary/20 dark:hover:bg-dark-border/40 text-text/70 dark:text-dark-text/70 hover:text-primary dark:hover:text-primary"
                 title="More Options"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><circle cx="12" cy="5" r="1" fill="currentColor" /><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="12" cy="19" r="1" fill="currentColor" /></svg>
               </button>
               {menuOpen && (
                 <div className="absolute right-0 bottom-full mb-2 rounded-xl overflow-hidden z-20 min-w-[140px]"
@@ -336,6 +336,12 @@ const TripCard: React.FC<{
                     border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.6)",
                     boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
                   }}>
+                  <button onClick={(e) => { e.stopPropagation(); navigate(`/invoice?tripId=${trip.id}`); setMenuOpen(false); }}
+                    className="w-full px-4 py-2.5 text-xs font-medium text-left hover:bg-secondary/20 dark:hover:bg-dark-border/40 transition"
+                    style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
+                  >
+                    Invoice & Budget
+                  </button>
                   <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(); }}
                     className="w-full px-4 py-2.5 text-xs font-medium text-left hover:bg-secondary/20 dark:hover:bg-dark-border/40 transition"
                     style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
