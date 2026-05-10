@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ const previousTrips = [
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
-const Navbar: React.FC = () => (
+const Navbar: React.FC<{ onMenuClick: () => void }> = ({ onMenuClick }) => (
   <nav
     className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
     style={{
@@ -76,9 +77,22 @@ const Navbar: React.FC = () => (
       boxShadow: "0 2px 12px rgba(198,93,58,0.07)",
     }}
   >
+    {/* Hamburger */}
+    <button
+      onClick={onMenuClick}
+      className="w-9 h-9 rounded-xl flex flex-col items-center justify-center gap-1.5 hover:opacity-70 transition focus:outline-none"
+      style={{ background: "rgba(198,93,58,0.08)" }}
+      aria-label="Open menu"
+    >
+      <span className="block w-4 h-0.5 rounded-full" style={{ background: "#C65D3A" }} />
+      <span className="block w-4 h-0.5 rounded-full" style={{ background: "#C65D3A" }} />
+      <span className="block w-3 h-0.5 rounded-full" style={{ background: "#C65D3A" }} />
+    </button>
+
     <span className="text-2xl font-bold tracking-tight" style={{ color: "#C65D3A" }}>
       Traveloop
     </span>
+
     <Link
       to="/login"
       className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition"
@@ -258,6 +272,8 @@ const TripCard: React.FC<{
 // ─── Landing Page ─────────────────────────────────────────────────────────────
 
 const LandingPage: React.FC = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div
       className="min-h-screen pb-28 relative"
@@ -273,7 +289,8 @@ const LandingPage: React.FC = () => {
         style={{ background: "#C65D3A" }}
       />
 
-      <Navbar />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Navbar onMenuClick={() => setSidebarOpen(true)} />
       <Banner />
       <SearchBar />
 
