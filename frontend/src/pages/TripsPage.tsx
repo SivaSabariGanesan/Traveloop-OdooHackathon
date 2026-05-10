@@ -280,74 +280,74 @@ const TripCard: React.FC<{
         )}
 
         {/* Metadata */}
-        <div className="text-xs mb-4 pb-4"
+        <div className="text-xs mb-4"
           style={{
             color: dark ? "rgba(240,230,211,0.7)" : "rgba(59,47,47,0.7)",
-            borderBottom: dark ? "1px solid rgba(61,46,34,0.6)" : "1px solid rgba(230,211,179,0.4)",
           }}>
           {formatDate(trip.startDate)} – {formatDate(trip.endDate)} • {duration}
           {trip.budget ? ` • $${trip.budget.toLocaleString()}` : ""}
         </div>
 
         {/* Quick Actions */}
-        <div className="flex gap-2 mt-auto relative">
-          <button onClick={(e) => { e.stopPropagation(); onView(); }}
-            className="flex-1 py-2 px-3 rounded-lg text-xs font-medium hover:opacity-80 transition"
-            style={{ background: "#C65D3A", color: "white", boxShadow: "0 2px 8px rgba(198,93,58,0.3)" }}>
-            View Trip
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="py-2 px-3 rounded-lg text-xs font-medium hover:opacity-80 transition"
-            style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)", color: dark ? "#F0E6D3" : "#3B2F2F" }}>
-            Edit
-          </button>
-          {/* Notes button */}
-          <button
-            onClick={(e) => { e.stopPropagation(); navigate(`/notes?tripId=${trip.id}`); }}
-            className="py-2 px-3 rounded-lg text-xs font-medium hover:opacity-80 transition flex items-center gap-1"
-            style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)", color: dark ? "#F0E6D3" : "#3B2F2F" }}>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            Notes
-          </button>
-          {/* Share button */}
-          <button
-            onClick={(e) => { e.stopPropagation(); navigate(`/trip/${trip.id}`); }}
-            className="py-2 px-3 rounded-lg text-xs font-medium hover:opacity-80 transition"
-            style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)", color: dark ? "#F0E6D3" : "#3B2F2F" }}>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-          </button>
-          <div className="relative">
-            <button onClick={(e) => { e.stopPropagation(); setMenuOpen((p) => !p); }}
-              className="py-2 px-3 rounded-lg text-xs font-medium hover:opacity-80 transition"
-              style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.5)", color: dark ? "#F0E6D3" : "#3B2F2F" }}>
-              •••
+        <div className="flex items-center justify-between mt-auto pt-3 relative"
+             style={{ borderTop: dark ? "1px solid rgba(61,46,34,0.6)" : "1px solid rgba(230,211,179,0.4)" }}>
+          
+          <div className="flex gap-1.5 -ml-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); navigate(`/notes?tripId=${trip.id}`); }}
+              className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-md text-xs font-medium transition hover:bg-secondary/20 dark:hover:bg-dark-border/40"
+              style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
+            >
+              <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              Notes
             </button>
-            {menuOpen && (
-              <div className="absolute right-0 bottom-10 rounded-xl overflow-hidden z-10 min-w-[140px]"
-                style={{
-                  background: dark ? "rgba(28,22,18,0.95)" : "rgba(250,246,240,0.97)",
-                  border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.6)",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-                }}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuOpen(false);
-                    window.open(`${window.location.origin}/trip/${trip.id}`, "_blank");
-                  }}
-                  className="w-full px-4 py-2.5 text-xs text-left hover:opacity-70 transition"
-                  style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
-                  Open Share Page
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(); }}
-                  className="w-full px-4 py-2.5 text-xs text-left hover:opacity-70 transition"
-                  style={{ color: "#DC5555" }}>
-                  Delete Trip
-                </button>
-              </div>
-            )}
+            <button
+              onClick={(e) => { e.stopPropagation(); navigate(`/checklist?tripId=${trip.id}`); }}
+              className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-md text-xs font-medium transition hover:bg-secondary/20 dark:hover:bg-dark-border/40"
+              style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
+            >
+              <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Checklist
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1 -mr-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); navigate(`/trip/${trip.id}`); }}
+              className="p-1.5 rounded-md transition hover:bg-secondary/20 dark:hover:bg-dark-border/40 text-text/70 dark:text-dark-text/70 hover:text-primary dark:hover:text-primary"
+              title="Share Trip"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
+
+            <div className="relative">
+              <button onClick={(e) => { e.stopPropagation(); setMenuOpen((p) => !p); }}
+                className="p-1.5 rounded-md transition hover:bg-secondary/20 dark:hover:bg-dark-border/40 text-text/70 dark:text-dark-text/70 hover:text-primary dark:hover:text-primary"
+                title="More Options"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 bottom-full mb-2 rounded-xl overflow-hidden z-20 min-w-[140px]"
+                  style={{
+                    background: dark ? "rgba(28,22,18,0.98)" : "rgba(250,246,240,0.98)",
+                    border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.6)",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+                  }}>
+                  <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(); }}
+                    className="w-full px-4 py-2.5 text-xs font-medium text-left hover:bg-secondary/20 dark:hover:bg-dark-border/40 transition"
+                    style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+                    Edit Trip
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(); }}
+                    className="w-full px-4 py-2.5 text-xs font-medium text-left hover:bg-secondary/20 dark:hover:bg-dark-border/40 transition text-red-500 hover:bg-red-500/10">
+                    Delete Trip
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
