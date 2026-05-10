@@ -35,4 +35,28 @@ export const dbQueryDuration = new client.Histogram({
   registers: [register],
 });
 
+// ─── Gemini API metrics ───────────────────────────────────────────────────────
+
+export const geminiRequestTotal = new client.Counter({
+  name: 'gemini_requests_total',
+  help: 'Total number of Gemini API calls',
+  labelNames: ['operation', 'status'],
+  registers: [register],
+});
+
+export const geminiRequestDuration = new client.Histogram({
+  name: 'gemini_request_duration_seconds',
+  help: 'Duration of Gemini API calls in seconds',
+  labelNames: ['operation'],
+  buckets: [0.5, 1, 2, 3, 5, 10, 20],
+  registers: [register],
+});
+
+export const geminiTokensUsed = new client.Counter({
+  name: 'gemini_tokens_used_total',
+  help: 'Estimated total tokens used in Gemini API calls',
+  labelNames: ['operation'],
+  registers: [register],
+});
+
 export { register };

@@ -70,6 +70,61 @@
         "expr": "{app=\"traveloop\"}",
         "legendFormat": ""
       }]
+    },
+    {
+      "id": 7,
+      "title": "Gemini API Calls (req/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 26, "w": 12, "h": 8 },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "sum(rate(gemini_requests_total[5m])) by (operation)",
+        "legendFormat": "{{operation}}"
+      }]
+    },
+    {
+      "id": 8,
+      "title": "Gemini Error Rate",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 26, "w": 12, "h": 8 },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "sum(rate(gemini_requests_total{status=\"error\"}[5m]))",
+        "legendFormat": "errors/s"
+      }]
+    },
+    {
+      "id": 9,
+      "title": "Gemini Response Time P95 (s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 34, "w": 12, "h": 8 },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "histogram_quantile(0.95, sum(rate(gemini_request_duration_seconds_bucket[5m])) by (le, operation))",
+        "legendFormat": "p95 {{operation}}"
+      }]
+    },
+    {
+      "id": 10,
+      "title": "Gemini Total Requests",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 34, "w": 6, "h": 8 },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "sum(gemini_requests_total)",
+        "legendFormat": "Total"
+      }]
+    },
+    {
+      "id": 11,
+      "title": "Gemini Estimated Tokens Used",
+      "type": "timeseries",
+      "gridPos": { "x": 18, "y": 34, "w": 6, "h": 8 },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "sum(rate(gemini_tokens_used_total[5m])) by (operation)",
+        "legendFormat": "{{operation}}"
+      }]
     }
   ]
 }

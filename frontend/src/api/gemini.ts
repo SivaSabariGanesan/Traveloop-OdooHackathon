@@ -1,35 +1,60 @@
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const BACKEND_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
-async function ask(prompt: string): Promise<string> {
-  const res = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2048,
-        responseMimeType: 'application/json',
-      },
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error('Gemini API error:', res.status, err);
-    throw new Error(`Gemini error ${res.status}: ${err?.error?.message ?? res.statusText}`);
+async function trackUsage(operation: string, durationMs: number, status: 'success' | 'error', estimatedTokens = 0) {
+  try {
+    await fetch(`${BACKEND_URL}/api/gemini/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operation, durationMs, status, estimatedTokens }),
+    });
+  } catch {
+    // non-critical — don't let tracking failures affect the user
   }
+}
 
-  const data = await res.json();
+async function ask(prompt: string, operation = 'unknown'): Promise<string> {
+  const start = Date.now();
+  try {
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+          responseMimeType: 'application/json',
+        },
+      }),
+    });
 
-  // Gemini 2.5 may return multiple parts — find the text part (not thought)
-  const parts = data.candidates?.[0]?.content?.parts ?? [];
-  const textPart = parts.find((p: any) => p.text && !p.thought);
-  const text = textPart?.text ?? parts[parts.length - 1]?.text ?? '';
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error('Gemini API error:', res.status, err);
+      trackUsage(operation, Date.now() - start, 'error');
+      throw new Error(`Gemini error ${res.status}: ${err?.error?.message ?? res.statusText}`);
+    }
 
-  console.log('Gemini response preview:', text.slice(0, 150));
-  return text;
+    const data = await res.json();
+
+    // Gemini 2.5 may return multiple parts — find the text part (not thought)
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const textPart = parts.find((p: any) => p.text && !p.thought);
+    const text = textPart?.text ?? parts[parts.length - 1]?.text ?? '';
+
+    const estimatedTokens = Math.ceil(prompt.length / 4) + Math.ceil(text.length / 4);
+    trackUsage(operation, Date.now() - start, 'success', estimatedTokens);
+
+    console.log('Gemini response preview:', text.slice(0, 150));
+    return text;
+  } catch (err) {
+    if (!(err instanceof Error && err.message.startsWith('Gemini error'))) {
+      trackUsage(operation, Date.now() - start, 'error');
+    }
+    throw err;
+  }
 }
 
 function extractJson(text: string, type: 'array' | 'object'): string {
@@ -106,7 +131,7 @@ Use ONLY these categories: Adventure, Nature, Culture, Food, Beach, History, Sho
 Return a JSON array:
 [{"name":"string","category":"one of the above","description":"one sentence max","rating":4.5}]`;
 
-    const text = await ask(prompt);
+    const text = await ask(prompt, 'getSuggestions');
     const json = extractJson(text, 'array');
     const items = JSON.parse(json) as Omit<ActivitySuggestion, 'image'>[];
     return items.map((item) => ({
@@ -120,7 +145,7 @@ Return a JSON array:
     const prompt = `Travel insights for ${destination}. Return a JSON object:
 {"estimatedBudget":"$X-$Y per person","weather":"brief description","bestSeason":"months","currency":"currency name","language":"main language","tips":["tip1","tip2","tip3"]}`;
 
-    const text = await ask(prompt);
+    const text = await ask(prompt, 'getInsights');
     const json = extractJson(text, 'object');
     return JSON.parse(json) as DestinationInsights;
   },
@@ -132,7 +157,7 @@ For each place include the name (as city field), a short area/district (as count
 Return a JSON array:
 [{"city":"place name","country":"area or district","description":"one sentence","recommendedDays":1,"highlights":["highlight1","highlight2","highlight3"]}]`;
 
-    const text = await ask(prompt);
+    const text = await ask(prompt, 'getStopSuggestions');
     const json = extractJson(text, 'array');
     return JSON.parse(json) as StopSuggestion[];
   },

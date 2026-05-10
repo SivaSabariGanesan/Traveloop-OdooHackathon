@@ -11,6 +11,7 @@ import logger from './config/logger';
 import authRoutes from './routes/auth.routes';
 import tripRoutes from './routes/trip.routes';
 import itineraryRoutes from './routes/itinerary.routes';
+import geminiRoutes from './routes/gemini.routes';
 import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
@@ -95,6 +96,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', authRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/trips/:tripId/stops', itineraryRoutes);
+app.use('/api/gemini', geminiRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

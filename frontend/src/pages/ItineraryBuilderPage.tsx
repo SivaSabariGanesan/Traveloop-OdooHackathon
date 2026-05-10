@@ -39,7 +39,7 @@ const ItineraryBuilderPage: React.FC = () => {
         setTrip(tripRes.data.data.trip);
         setSections(stopsRes.data.data);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setIsLoading(false));
   }, [tripId]);
 
@@ -121,11 +121,12 @@ const ItineraryBuilderPage: React.FC = () => {
     }
   };
 
-  const removeSection = async (id: string) => {    if (!tripId || sections.length <= 1) return;
+  const removeSection = async (id: string) => {
+    if (!tripId || sections.length <= 1) return;
     try {
       await itineraryApi.deleteStop(tripId, id);
       setSections((prev) => prev.filter((s) => s.id !== id));
-    } catch {}
+    } catch { }
   };
 
   const updateSectionLocal = (id: string, field: string, value: string) => {
@@ -155,7 +156,7 @@ const ItineraryBuilderPage: React.FC = () => {
         tripId,
         sections.map((s, i) => ({ id: s.id, order: i }))
       );
-    } catch {}
+    } catch { }
   };
 
   const handleSave = async () => {
@@ -172,7 +173,7 @@ const ItineraryBuilderPage: React.FC = () => {
           return itineraryApi.updateStop(tripId, s.id, payload);
         })
       );
-    } catch {}
+    } catch { }
     setIsSaving(false);
   };
 
@@ -242,80 +243,236 @@ const ItineraryBuilderPage: React.FC = () => {
               : "0 8px 32px rgba(198,93,58,0.12), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
           }}>
 
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "#C65D3A", borderTopColor: "transparent" }} />
-            </div>
-          ) : (
-            <>
-              {/* Sections */}
-              <div className="space-y-4">
-                {sections.map((section, index) => {
-                  const display = getSectionDisplay(section);
-                  return (
-                    <div key={section.id} draggable
-                      onDragStart={() => handleDragStart(index)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDragEnd={handleDragEnd}
-                      className="rounded-2xl p-5 transition-all duration-200"
-                      style={{
-                        background: dark ? "rgba(42,33,26,0.7)" : "rgba(255,255,255,0.6)",
-                        border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.5)",
-                        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-                        opacity: draggedIndex === index ? 0.5 : 1,
-                        boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(198,93,58,0.12)",
-                      }}>
+            {isLoading ? (
+              <div className="flex justify-center py-16">
+                <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "#C65D3A", borderTopColor: "transparent" }} />
+              </div>
+            ) : (
+              <>
+                {/* Sections */}
+                <div className="space-y-4">
+                  {sections.map((section, index) => {
+                    const display = getSectionDisplay(section);
+                    return (
+                      <div key={section.id} draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragEnd={handleDragEnd}
+                        className="rounded-2xl p-5 transition-all duration-200"
+                        style={{
+                          background: dark ? "rgba(42,33,26,0.7)" : "rgba(255,255,255,0.6)",
+                          border: dark ? "1px solid rgba(61,46,34,0.8)" : "1px solid rgba(230,211,179,0.5)",
+                          backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+                          opacity: draggedIndex === index ? 0.5 : 1,
+                          boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(198,93,58,0.12)",
+                        }}>
 
-                      {/* Section Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="cursor-grab active:cursor-grabbing"
-                            onMouseDown={(e) => e.stopPropagation()}>
-                            <svg className="w-6 h-6" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}
+                        {/* Section Header */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="cursor-grab active:cursor-grabbing"
+                              onMouseDown={(e) => e.stopPropagation()}>
+                              <svg className="w-6 h-6" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
+                              </svg>
+                            </div>
+                            <h2 className="text-base font-semibold" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+                              Section {index + 1}
+                            </h2>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {sections.length > 1 && (
+                              <button onClick={() => removeSection(section.id)}
+                                className="p-1.5 rounded-lg transition-all duration-200 hover:opacity-70"
+                                style={{ background: "rgba(200,100,100,0.2)" }} aria-label="Remove section">
+                                <svg className="w-4 h-4" style={{ color: "#DC5555" }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Title (city) */}
+                        <div className="mb-3">
+                          <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                            Title
+                          </label>
+                          <input type="text" value={display.title}
+                            onChange={(e) => updateSectionLocal(section.id, "city", e.target.value)}
+                            placeholder="e.g., Arrival in Paris, Eiffel Tower Visit"
+                            className="w-full px-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                            style={inputStyle} />
+                        </div>
+
+                        {/* Location */}
+                        <div className="mb-3">
+                          <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                            Location
+                          </label>
+                          <div className="relative">
+                            <input type="text" value={display.location}
+                              onChange={(e) => updateSectionLocal(section.id, "city", e.target.value)}
+                              placeholder="e.g., Paris, France"
+                              className="w-full pl-9 pr-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                              style={inputStyle} />
+                            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                              style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}
                               fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                           </div>
-                          <h2 className="text-base font-semibold" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
-                            Section {index + 1}
-                          </h2>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {sections.length > 1 && (
-                            <button onClick={() => removeSection(section.id)}
-                              className="p-1.5 rounded-lg transition-all duration-200 hover:opacity-70"
-                              style={{ background: "rgba(200,100,100,0.2)" }} aria-label="Remove section">
-                              <svg className="w-4 h-4" style={{ color: "#DC5555" }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          )}
+
+                        {/* Date Range */}
+                        <div className="mb-3">
+                          <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                            Date Range
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input type="date" value={display.startDate}
+                              onChange={(e) => updateSectionLocal(section.id, "arrivalDate", e.target.value)}
+                              className="flex-1 px-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                              style={inputStyle} />
+                            <span className="text-xs font-medium" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>to</span>
+                            <input type="date" value={display.endDate}
+                              onChange={(e) => updateSectionLocal(section.id, "departureDate", e.target.value)}
+                              className="flex-1 px-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                              style={inputStyle} />
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Title (city) */}
-                      <div className="mb-3">
-                        <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
-                          Title
-                        </label>
-                        <input type="text" value={display.title}
-                          onChange={(e) => updateSectionLocal(section.id, "city", e.target.value)}
-                          placeholder="e.g., Arrival in Paris, Eiffel Tower Visit"
-                          className="w-full px-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                          style={inputStyle} />
-                      </div>
-
-                      {/* Location */}
-                      <div className="mb-3">
-                        <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
-                          Location
-                        </label>
-                        <div className="relative">
-                          <input type="text" value={display.location}
-                            onChange={(e) => updateSectionLocal(section.id, "city", e.target.value)}
-                            placeholder="e.g., Paris, France"
-                            className="w-full pl-9 pr-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                        {/* Notes */}
+                        <div>
+                          <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
+                            Notes
+                          </label>
+                          <textarea value={display.notes}
+                            onChange={(e) => updateSectionLocal(section.id, "notes", e.target.value)}
+                            placeholder="Add any additional notes, activities, or reminders..."
+                            rows={2}
+                            className="w-full px-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
                             style={inputStyle} />
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* AI Places to Visit Suggestions */}
+                  {(loadingStopSuggestions || stopSuggestions.length > 0) && (
+                    <div className="rounded-2xl p-5" style={{
+                      background: dark ? "rgba(42,33,26,0.5)" : "rgba(255,255,255,0.4)",
+                      border: dark ? "1px solid rgba(61,46,34,0.6)" : "1px solid rgba(198,93,58,0.2)",
+                      backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+                    }}>
+                      <div className="flex items-center gap-2 mb-4">
+                        <svg className="w-4 h-4" fill="none" stroke="#C65D3A" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        <span className="text-sm font-semibold" style={{ color: "#C65D3A" }}>
+                          Places to Visit{trip?.destination ? ` in ${trip.destination}` : ""}
+                        </span>
+                      </div>
+
+                      {loadingStopSuggestions ? (
+                        <div className="flex items-center gap-3 py-4">
+                          <div className="w-5 h-5 rounded-full border-2 animate-spin flex-shrink-0"
+                            style={{ borderColor: "#C65D3A", borderTopColor: "transparent" }} />
+                          <span className="text-sm" style={{ color: dark ? "rgba(240,230,211,0.5)" : "rgba(59,47,47,0.5)" }}>
+                            Finding places to visit...
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {stopSuggestions.map((s, i) => (
+                            <div key={i} className="flex items-start justify-between gap-3 p-3 rounded-xl transition-all"
+                              style={{
+                                background: dark ? "rgba(28,22,18,0.5)" : "rgba(250,246,240,0.7)",
+                                border: addedSuggestedStops.has(i)
+                                  ? "1px solid rgba(198,93,58,0.5)"
+                                  : dark ? "1px solid rgba(61,46,34,0.4)" : "1px solid rgba(230,211,179,0.4)",
+                              }}>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5">                                <span className="text-sm font-semibold" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
+                                  {s.city}
+                                </span>
+                                  <span className="text-xs" style={{ color: dark ? "rgba(240,230,211,0.45)" : "rgba(59,47,47,0.45)" }}>
+                                    {s.country}
+                                  </span>
+                                  <span className="text-xs px-1.5 py-0.5 rounded-full"
+                                    style={{ background: "rgba(198,93,58,0.12)", color: "#C65D3A" }}>
+                                    {s.recommendedDays}d
+                                  </span>
+                                </div>
+                                <p className="text-xs mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.55)" : "rgba(59,47,47,0.6)" }}>
+                                  {s.description}
+                                </p>
+                                <div className="flex flex-wrap gap-1">
+                                  {s.highlights.map((h, hi) => (
+                                    <span key={hi} className="text-xs px-2 py-0.5 rounded-full"
+                                      style={{ background: dark ? "rgba(61,46,34,0.6)" : "rgba(212,163,115,0.2)", color: dark ? "rgba(240,230,211,0.7)" : "rgba(59,47,47,0.7)" }}>
+                                      {h}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => addSuggestedStop(s, i)}
+                                disabled={addedSuggestedStops.has(i) || addingSuggestedStop === i}
+                                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                style={{
+                                  background: addedSuggestedStops.has(i) ? "rgba(198,93,58,0.15)" : "#C65D3A",
+                                  color: addedSuggestedStops.has(i) ? "#C65D3A" : "#fff",
+                                  opacity: addingSuggestedStop === i ? 0.6 : 1,
+                                  cursor: addedSuggestedStops.has(i) ? "default" : "pointer",
+                                }}>
+                                {addingSuggestedStop === i ? (
+                                  <div className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin" />
+                                ) : addedSuggestedStops.has(i) ? (
+                                  <>
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Added
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Add
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* New section form — same card style */}
+                  {tripId && (
+                    <div className="rounded-2xl p-5" style={{
+                      background: dark ? "rgba(42,33,26,0.5)" : "rgba(255,255,255,0.4)",
+                      border: `2px dashed ${dark ? "rgba(61,46,34,0.7)" : "rgba(198,93,58,0.25)"}`,
+                      backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+                    }}>
+                      <h2 className="text-base font-semibold mb-3" style={{ color: dark ? "rgba(240,230,211,0.6)" : "rgba(59,47,47,0.6)" }}>
+                        New Section
+                      </h2>
+
+                      <div className="mb-3">
+                        <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>Location *</label>
+                        <div className="relative">
+                          <input type="text" value={newSection.location}
+                            onChange={(e) => setNewSection((p) => ({ ...p, location: e.target.value }))}
+                            placeholder="e.g., Paris, France"
+                            className="w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none" style={inputStyle} />
                           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
                             style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}
                             fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -325,234 +482,78 @@ const ItineraryBuilderPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Date Range */}
                       <div className="mb-3">
-                        <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
-                          Date Range
-                        </label>
+                        <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>Date Range *</label>
                         <div className="flex items-center gap-2">
-                          <input type="date" value={display.startDate}
-                            onChange={(e) => updateSectionLocal(section.id, "arrivalDate", e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                            style={inputStyle} />
+                          <input type="date" value={newSection.startDate}
+                            onChange={(e) => setNewSection((p) => ({ ...p, startDate: e.target.value }))}
+                            className="flex-1 px-3 py-2 rounded-xl text-sm focus:outline-none" style={inputStyle} />
                           <span className="text-xs font-medium" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>to</span>
-                          <input type="date" value={display.endDate}
-                            onChange={(e) => updateSectionLocal(section.id, "departureDate", e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                            style={inputStyle} />
+                          <input type="date" value={newSection.endDate}
+                            onChange={(e) => setNewSection((p) => ({ ...p, endDate: e.target.value }))}
+                            className="flex-1 px-3 py-2 rounded-xl text-sm focus:outline-none" style={inputStyle} />
                         </div>
                       </div>
 
-                      {/* Notes */}
-                      <div>
-                        <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
-                          Notes
-                        </label>
-                        <textarea value={display.notes}
-                          onChange={(e) => updateSectionLocal(section.id, "notes", e.target.value)}
+                      <div className="mb-4">
+                        <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>Notes</label>
+                        <textarea value={newSection.notes}
+                          onChange={(e) => setNewSection((p) => ({ ...p, notes: e.target.value }))}
                           placeholder="Add any additional notes, activities, or reminders..."
-                          rows={2}
-                          className="w-full px-3 py-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
-                          style={inputStyle} />
+                          rows={2} className="w-full px-3 py-2 rounded-xl text-sm focus:outline-none resize-none" style={inputStyle} />
+                      </div>
+
+                      <div className="flex flex-col items-center gap-3">
+                        {addError && (
+                          <p className="text-xs text-center w-full rounded-lg px-3 py-2"
+                            style={{ background: "rgba(220,85,85,0.1)", color: "#DC5555", border: "1px solid rgba(220,85,85,0.2)" }}>
+                            {addError}
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={addSection}
+                          disabled={isAdding}
+                          className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200"
+                          style={{
+                            background: "#C65D3A",
+                            color: "#fff",
+                            opacity: isAdding ? 0.45 : 1,
+                            cursor: isAdding ? "not-allowed" : "pointer",
+                            boxShadow: "0 4px 15px rgba(198,93,58,0.3)",
+                          }}>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                          </svg>
+                          {isAdding ? "Adding..." : "Add Stop"}
+                        </button>
                       </div>
                     </div>
-                  );
-                })}
+                  )}
+                </div>
 
-                {/* AI Places to Visit Suggestions */}
-                {(loadingStopSuggestions || stopSuggestions.length > 0) && (
-                  <div className="rounded-2xl p-5" style={{
-                    background: dark ? "rgba(42,33,26,0.5)" : "rgba(255,255,255,0.4)",
-                    border: dark ? "1px solid rgba(61,46,34,0.6)" : "1px solid rgba(198,93,58,0.2)",
-                    backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-                  }}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <svg className="w-4 h-4" fill="none" stroke="#C65D3A" viewBox="0 0 24 24" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                      </svg>
-                      <span className="text-sm font-semibold" style={{ color: "#C65D3A" }}>
-                        Places to Visit{trip?.destination ? ` in ${trip.destination}` : ""}
-                      </span>
-                    </div>
-
-                    {loadingStopSuggestions ? (
-                      <div className="flex items-center gap-3 py-4">
-                        <div className="w-5 h-5 rounded-full border-2 animate-spin flex-shrink-0"
-                          style={{ borderColor: "#C65D3A", borderTopColor: "transparent" }} />
-                        <span className="text-sm" style={{ color: dark ? "rgba(240,230,211,0.5)" : "rgba(59,47,47,0.5)" }}>
-                          Finding places to visit...
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {stopSuggestions.map((s, i) => (
-                          <div key={i} className="flex items-start justify-between gap-3 p-3 rounded-xl transition-all"
-                            style={{
-                              background: dark ? "rgba(28,22,18,0.5)" : "rgba(250,246,240,0.7)",
-                              border: addedSuggestedStops.has(i)
-                                ? "1px solid rgba(198,93,58,0.5)"
-                                : dark ? "1px solid rgba(61,46,34,0.4)" : "1px solid rgba(230,211,179,0.4)",
-                            }}>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">                                <span className="text-sm font-semibold" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
-                                  {s.city}
-                                </span>
-                                <span className="text-xs" style={{ color: dark ? "rgba(240,230,211,0.45)" : "rgba(59,47,47,0.45)" }}>
-                                  {s.country}
-                                </span>
-                                <span className="text-xs px-1.5 py-0.5 rounded-full"
-                                  style={{ background: "rgba(198,93,58,0.12)", color: "#C65D3A" }}>
-                                  {s.recommendedDays}d
-                                </span>
-                              </div>
-                              <p className="text-xs mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.55)" : "rgba(59,47,47,0.6)" }}>
-                                {s.description}
-                              </p>
-                              <div className="flex flex-wrap gap-1">
-                                {s.highlights.map((h, hi) => (
-                                  <span key={hi} className="text-xs px-2 py-0.5 rounded-full"
-                                    style={{ background: dark ? "rgba(61,46,34,0.6)" : "rgba(212,163,115,0.2)", color: dark ? "rgba(240,230,211,0.7)" : "rgba(59,47,47,0.7)" }}>
-                                    {h}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => addSuggestedStop(s, i)}
-                              disabled={addedSuggestedStops.has(i) || addingSuggestedStop === i}
-                              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-                              style={{
-                                background: addedSuggestedStops.has(i) ? "rgba(198,93,58,0.15)" : "#C65D3A",
-                                color: addedSuggestedStops.has(i) ? "#C65D3A" : "#fff",
-                                opacity: addingSuggestedStop === i ? 0.6 : 1,
-                                cursor: addedSuggestedStops.has(i) ? "default" : "pointer",
-                              }}>
-                              {addingSuggestedStop === i ? (
-                                <div className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin" />
-                              ) : addedSuggestedStops.has(i) ? (
-                                <>
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                  </svg>
-                                  Added
-                                </>
-                              ) : (
-                                <>
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                                  </svg>
-                                  Add
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* New section form — same card style */}
-                {tripId && (
-                  <div className="rounded-2xl p-5" style={{
-                    background: dark ? "rgba(42,33,26,0.5)" : "rgba(255,255,255,0.4)",
-                    border: `2px dashed ${dark ? "rgba(61,46,34,0.7)" : "rgba(198,93,58,0.25)"}`,
-                    backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-                  }}>
-                    <h2 className="text-base font-semibold mb-3" style={{ color: dark ? "rgba(240,230,211,0.6)" : "rgba(59,47,47,0.6)" }}>
-                      New Section
-                    </h2>
-
-                    <div className="mb-3">
-                      <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>Location *</label>
-                      <div className="relative">
-                        <input type="text" value={newSection.location}
-                          onChange={(e) => setNewSection((p) => ({ ...p, location: e.target.value }))}
-                          placeholder="e.g., Paris, France"
-                          className="w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none" style={inputStyle} />
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                          style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>Date Range *</label>
-                      <div className="flex items-center gap-2">
-                        <input type="date" value={newSection.startDate}
-                          onChange={(e) => setNewSection((p) => ({ ...p, startDate: e.target.value }))}
-                          className="flex-1 px-3 py-2 rounded-xl text-sm focus:outline-none" style={inputStyle} />
-                        <span className="text-xs font-medium" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>to</span>
-                        <input type="date" value={newSection.endDate}
-                          onChange={(e) => setNewSection((p) => ({ ...p, endDate: e.target.value }))}
-                          className="flex-1 px-3 py-2 rounded-xl text-sm focus:outline-none" style={inputStyle} />
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-xs font-semibold mb-1.5" style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>Notes</label>
-                      <textarea value={newSection.notes}
-                        onChange={(e) => setNewSection((p) => ({ ...p, notes: e.target.value }))}
-                        placeholder="Add any additional notes, activities, or reminders..."
-                        rows={2} className="w-full px-3 py-2 rounded-xl text-sm focus:outline-none resize-none" style={inputStyle} />
-                    </div>
-
-                    <div className="flex flex-col items-center gap-3">
-                      {addError && (
-                        <p className="text-xs text-center w-full rounded-lg px-3 py-2"
-                          style={{ background: "rgba(220,85,85,0.1)", color: "#DC5555", border: "1px solid rgba(220,85,85,0.2)" }}>
-                          {addError}
-                        </p>
-                      )}
-                      <button
-                        type="button"
-                        onClick={addSection}
-                        disabled={isAdding}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200"
-                        style={{
-                          background: "#C65D3A",
-                          color: "#fff",
-                          opacity: isAdding ? 0.45 : 1,
-                          cursor: isAdding ? "not-allowed" : "pointer",
-                          boxShadow: "0 4px 15px rgba(198,93,58,0.3)",
-                        }}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        {isAdding ? "Adding..." : "Add Stop"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-4 mt-8 pt-6 border-t" style={{ borderColor: dark ? "rgba(61,46,34,0.6)" : "rgba(255,255,255,0.35)" }}>
-                <button onClick={handleSave} disabled={isSaving}
-                  className="flex-1 py-3 px-6 rounded-xl font-medium transition-all duration-200 hover:opacity-80"
-                  style={{
-                    background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.35)",
-                    border: dark ? "1px solid rgba(61,46,34,0.9)" : "1px solid rgba(255,255,255,0.45)",
-                    color: dark ? "#F0E6D3" : "#3B2F2F",
-                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-                    opacity: isSaving ? 0.6 : 1,
-                  }}>
-                  {isSaving ? "Saving..." : "Save Draft"}
-                </button>
-                <button onClick={handleComplete} disabled={isSaving}
-                  className="flex-1 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90"
-                  style={{ background: "#C65D3A", boxShadow: "0 4px 15px rgba(198,93,58,0.35)", opacity: isSaving ? 0.7 : 1 }}>
-                  Complete Itinerary
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+                {/* Action Buttons */}
+                <div className="flex gap-4 mt-8 pt-6 border-t" style={{ borderColor: dark ? "rgba(61,46,34,0.6)" : "rgba(255,255,255,0.35)" }}>
+                  <button onClick={handleSave} disabled={isSaving}
+                    className="flex-1 py-3 px-6 rounded-xl font-medium transition-all duration-200 hover:opacity-80"
+                    style={{
+                      background: dark ? "rgba(61,46,34,0.5)" : "rgba(255,255,255,0.35)",
+                      border: dark ? "1px solid rgba(61,46,34,0.9)" : "1px solid rgba(255,255,255,0.45)",
+                      color: dark ? "#F0E6D3" : "#3B2F2F",
+                      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                      opacity: isSaving ? 0.6 : 1,
+                    }}>
+                    {isSaving ? "Saving..." : "Save Draft"}
+                  </button>
+                  <button onClick={handleComplete} disabled={isSaving}
+                    className="flex-1 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90"
+                    style={{ background: "#C65D3A", boxShadow: "0 4px 15px rgba(198,93,58,0.35)", opacity: isSaving ? 0.7 : 1 }}>
+                    Complete Itinerary
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </main>
     </div>
