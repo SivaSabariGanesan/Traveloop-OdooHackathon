@@ -4,6 +4,7 @@ import RegisterPage from "../pages/RegisterPage";
 import LandingPage from "../pages/LandingPage";
 import PlanTripPage from "../pages/PlanTripPage";
 import ItineraryBuilderPage from "../pages/ItineraryBuilderPage";
+import ItineraryViewPage from "../pages/ItineraryViewPage";
 import ProfilePage from "../pages/ProfilePage";
 
 const AppRoutes = () => {
@@ -14,6 +15,8 @@ const AppRoutes = () => {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/plan" element={<PlanTripPage />} />
       <Route path="/itinerary" element={<ItineraryBuilderPage />} />
+      <Route path="/itinerary/:id" element={<ItineraryViewPage />} />
+      <Route path="/itinerary-view" element={<ItineraryViewPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
