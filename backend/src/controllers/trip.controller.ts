@@ -3,6 +3,11 @@ import { tripService } from '../services/trip.service';
 import type { AuthRequest } from '../middlewares/auth';
 import { AppError } from '../utils/AppError';
 
+// Extend AuthRequest to include multer file
+interface TripRequest extends AuthRequest {
+  file?: Express.Multer.File;
+}
+
 export const tripController = {
   /**
    * Get all trips for the authenticated user
@@ -44,11 +49,15 @@ export const tripController = {
   /**
    * Create a new trip
    */
-  create: async (req: AuthRequest, res: Response, next: NextFunction) => {
+  create: async (req: TripRequest, res: Response, next: NextFunction) => {
     try {
       if (!req.user) throw new AppError('Unauthorized', 401);
 
-      const trip = await tripService.create(req.user.id, req.body);
+      const coverPhoto = req.file
+        ? `/uploads/trips/${req.file.filename}`
+        : undefined;
+
+      const trip = await tripService.create(req.user.id, { ...req.body, coverPhoto });
 
       res.status(201).json({
         status: 'success',

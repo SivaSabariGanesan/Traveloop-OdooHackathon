@@ -41,6 +41,8 @@ model User {
 model Trip {
   id          String     @id @default(cuid())
   name        String
+  destination String?
+  budget      Float?
   placeId     String?
   startDate   DateTime
   endDate     DateTime

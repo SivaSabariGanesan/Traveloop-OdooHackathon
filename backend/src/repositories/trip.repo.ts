@@ -15,8 +15,12 @@ export const tripRepo = {
       include: { sections: { include: { activities: true } } },
     }),
 
-  create: (data: CreateTripInput & { userId: string; status: string }) =>
-    prisma.trip.create({ data }),
+  create: (data: CreateTripInput & { userId: string; status: string; coverPhoto?: string }) => {
+    const { coverPhoto, ...rest } = data;
+    return prisma.trip.create({
+      data: coverPhoto ? { ...rest, coverPhoto } : rest,
+    });
+  },
 
   update: (id: string, data: UpdateTripInput) =>
     prisma.trip.update({ where: { id }, data }),

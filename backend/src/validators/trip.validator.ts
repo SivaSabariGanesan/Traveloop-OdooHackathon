@@ -2,11 +2,13 @@ import { z } from 'zod';
 
 const baseTripSchema = z.object({
   name: z.string().min(1, 'Trip name is required'),
+  destination: z.string().optional(),
+  budget: z.coerce.number().positive('Budget must be a positive number').optional(),
   placeId: z.string().optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   description: z.string().optional(),
-  coverPhoto: z.string().optional(),
+  // coverPhoto is handled via file upload, not body
 });
 
 export const createTripSchema = baseTripSchema.refine(
