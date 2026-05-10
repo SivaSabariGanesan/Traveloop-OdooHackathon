@@ -15,12 +15,30 @@ const LoginPage: React.FC = () => {
   };
 
   const inputClass =
-    "w-full px-4 py-3 rounded-xl border border-secondary bg-background text-text placeholder-text/35 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition text-sm";
+    "w-full px-4 py-3 rounded-xl border border-white/40 bg-white/30 text-text placeholder-text/40 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/60 transition text-sm backdrop-blur-sm";
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg bg-card rounded-3xl shadow-lg border border-secondary/60 px-10 py-10">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #FAF6F0 0%, #E6D3B3 50%, #D4A373 100%)" }}
+    >
+      {/* Decorative blobs */}
+      <div className="absolute top-[-80px] left-[-80px] w-72 h-72 rounded-full opacity-40 blur-3xl pointer-events-none"
+        style={{ background: "#eba087ff" }} />
+      <div className="absolute bottom-[-60px] right-[-60px] w-80 h-80 rounded-full opacity-30 blur-3xl pointer-events-none"
+        style={{ background: "#e8c199ff" }} />
+      <div className="absolute top-1/2 left-1/4 w-48 h-48 rounded-full opacity-20 blur-2xl pointer-events-none"
+        style={{ background: "#E6D3B3" }} />
 
+      {/* Glass card */}
+      <div className="relative w-full max-w-lg rounded-3xl px-10 py-10 z-10"
+        style={{
+          background: "rgba(250, 246, 240, 0.55)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.5)",
+          boxShadow: "0 8px 32px rgba(198, 93, 58, 0.12), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
+        }}
+      >
         {/* Header */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <AvatarUpload size="lg" />
@@ -32,7 +50,6 @@ const LoginPage: React.FC = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-
           <div className="flex flex-col gap-1.5">
             <label htmlFor="username" className="text-sm font-semibold text-text/80">
               Username
@@ -68,12 +85,13 @@ const LoginPage: React.FC = () => {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-secondary/50 my-1" />
+          <div className="border-t border-white/40 my-1" />
 
           {/* Submit */}
           <button
             type="submit"
             className="w-full py-3.5 rounded-xl bg-primary text-white font-semibold text-base hover:bg-primary/90 active:scale-[0.99] transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2"
+            style={{ boxShadow: "0 4px 15px rgba(198, 93, 58, 0.35)" }}
           >
             Login
           </button>
