@@ -1,7 +1,19 @@
 import { Resend } from 'resend';
 
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-load Resend client to ensure environment variables are loaded
+let resend: Resend | null = null;
+
+const getResendClient = (): Resend => {
+  if (!resend) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error('❌ RESEND_API_KEY is not set in environment variables');
+      throw new Error('RESEND_API_KEY environment variable is required');
+    }
+    resend = new Resend(apiKey);
+  }
+  return resend;
+};
 
 export const emailService = {
   /**
@@ -16,7 +28,7 @@ export const emailService = {
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
 
     try {
-      await resend.emails.send({
+      await getResendClient().emails.send({
         from: 'Traveloop <onboarding@resend.dev>',
         to: email,
         subject: 'Verify Your Email Address',
@@ -89,7 +101,7 @@ export const emailService = {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
 
     try {
-      await resend.emails.send({
+      await getResendClient().emails.send({
         from: 'Traveloop <onboarding@resend.dev>',
         to: email,
         subject: 'Reset Your Password',
@@ -157,6 +169,97 @@ export const emailService = {
     } catch (error) {
       console.error('❌ Error sending password reset email:', error);
       throw new Error('Failed to send password reset email');
+    }
+  },
+
+  /**
+   * Send invoice as PDF attachment
+   */
+  sendInvoice: async (
+    to: string,
+    tripName: string,
+    pdfBuffer: Buffer
+  ): Promise<void> => {
+    try {
+      await getResendClient().emails.send({
+        from: 'Traveloop <onboarding@resend.dev>',
+        to,
+        subject: `Your Travelloop Invoice — ${tripName}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8"/>
+            <style>
+              body { margin:0; padding:0; background:#f8fafc; font-family:'Segoe UI',sans-serif; }
+              .wrapper { max-width:520px; margin:40px auto; }
+              .header { background:linear-gradient(135deg,#2563eb,#1d4ed8); border-radius:16px 16px 0 0; padding:36px 40px; text-align:center; }
+              .header-title { color:#fff; font-size:24px; font-weight:700; margin:0; }
+              .header-sub { color:#bfdbfe; font-size:14px; margin-top:6px; }
+              .body { background:#ffffff; padding:36px 40px; border-radius:0 0 16px 16px; }
+              .greeting { font-size:16px; color:#0f172a; margin-bottom:16px; }
+              .info-box { background:#f1f5f9; border-radius:10px; padding:20px 24px; margin:20px 0; }
+              .info-row { display:flex; justify-content:space-between; font-size:14px; margin-bottom:8px; color:#475569; }
+              .info-row:last-child { margin-bottom:0; }
+              .info-row span:last-child { font-weight:600; color:#0f172a; }
+              .note { font-size:13px; color:#64748b; margin-top:20px; line-height:1.6; }
+              .footer { text-align:center; margin-top:28px; font-size:12px; color:#94a3b8; }
+              .brand { color:#2563eb; font-weight:600; }
+            </style>
+          </head>
+          <body>
+            <div class="wrapper">
+              <div class="header">
+                <p class="header-title">✈ Your Trip Invoice</p>
+                <p class="header-sub">Travelloop — Travel smarter</p>
+              </div>
+              <div class="body">
+                <p class="greeting">Hi there,</p>
+                <p style="font-size:14px;color:#475569;line-height:1.7">
+                  Your invoice for <strong style="color:#0f172a">${tripName}</strong> is attached
+                  to this email as a PDF. You can download, print, or save it for your records.
+                </p>
+                <div class="info-box">
+                  <div class="info-row">
+                    <span>📄 Document Type</span>
+                    <span>Trip Invoice</span>
+                  </div>
+                  <div class="info-row">
+                    <span>🗓 Trip</span>
+                    <span>${tripName}</span>
+                  </div>
+                  <div class="info-row">
+                    <span>📎 Format</span>
+                    <span>PDF</span>
+                  </div>
+                </div>
+                <p class="note">
+                  If you have any questions about this invoice or need assistance, feel free to reach out to our support team.
+                </p>
+                <p class="note">
+                  Thank you for using <span class="brand">Travelloop</span>!
+                </p>
+              </div>
+              <div class="footer">
+                <p>© ${new Date().getFullYear()} Travelloop. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        attachments: [
+          {
+            filename: `invoice-${tripName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`,
+            content: pdfBuffer,
+          },
+        ],
+      });
+
+      console.log(`✅ Invoice email sent to ${to}`);
+    } catch (error) {
+      console.error('❌ Error sending invoice email:', error);
+      throw new Error('Failed to send invoice email');
     }
   },
 };
