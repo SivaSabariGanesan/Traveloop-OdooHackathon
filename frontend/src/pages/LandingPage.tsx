@@ -46,7 +46,7 @@ const Navbar: React.FC<{ onMenuClick: () => void; dark: boolean }> = ({ onMenuCl
     </button>
 
     <span className="text-2xl font-bold tracking-tight" style={{ color: "#C65D3A" }}>
-      Traveloop
+      <img src="/Traveloop.png" alt="Traveloop" className="h-10" />
     </span>
 
     <div className="flex items-center gap-3">

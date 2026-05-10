@@ -78,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         <div className="flex items-center justify-between px-5 py-5"
           style={{ borderBottom: `1px solid ${borderCol}` }}>
           <span className="text-xl font-bold tracking-tight" style={{ color: "#C65D3A" }}>
-            Traveloop
+            <img src="/Traveloop.png" alt="Traveloop" className="h-9" />
           </span>
           <button onClick={onClose} aria-label="Close sidebar"
             className="w-8 h-8 rounded-lg flex items-center justify-center hover:opacity-70 transition"

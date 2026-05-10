@@ -27,7 +27,8 @@ const PlanTripPage: React.FC = () => {
 
   const handleCreateTrip = () => {
     console.log("Creating trip:", tripData);
-    // TODO: Implement create trip functionality
+    // Navigate to itinerary builder
+    navigate("/itinerary");
   };
 
   return (

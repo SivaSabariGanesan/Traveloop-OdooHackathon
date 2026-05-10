@@ -3,6 +3,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import LandingPage from "../pages/LandingPage";
 import PlanTripPage from "../pages/PlanTripPage";
+import ItineraryBuilderPage from "../pages/ItineraryBuilderPage";
 
 const AppRoutes = () => {
   return (
@@ -11,6 +12,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/plan" element={<PlanTripPage />} />
+      <Route path="/itinerary" element={<ItineraryBuilderPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
