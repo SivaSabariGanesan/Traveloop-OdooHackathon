@@ -114,12 +114,6 @@ const ProfilePage: React.FC = () => {
                   style={{ background: "#C65D3A", boxShadow: "0 4px 15px rgba(198,93,58,0.35)" }}>
                   Edit Profile
                 </button>
-                {user?.role === "ADMIN" && (
-                  <button onClick={() => navigate("/admin")} className="px-4 py-2 rounded-xl font-medium text-white hover:opacity-80 transition"
-                    style={{ background: "#3B2F2F", boxShadow: "0 4px 15px rgba(59,47,47,0.35)" }}>
-                    Admin Dashboard
-                  </button>
-                )}
               </div>
             ) : (
               <div className="flex gap-2">

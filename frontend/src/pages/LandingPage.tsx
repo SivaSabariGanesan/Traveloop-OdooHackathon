@@ -17,6 +17,7 @@ const regionalSelections = [
 
 const Navbar: React.FC<{ dark: boolean; isAuthenticated: boolean; onLogout: () => void }> = ({ dark, isAuthenticated, onLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <nav
@@ -60,6 +61,11 @@ const Navbar: React.FC<{ dark: boolean; isAuthenticated: boolean; onLogout: () =
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {user?.role === "ADMIN" && (
+            <Link to="/admin" className="hidden sm:block text-[10px] font-bold px-2 py-1 rounded border border-primary text-primary hover:bg-primary/10 transition uppercase tracking-widest">
+              Admin
+            </Link>
+          )}
           <ThemeToggle />
           {isAuthenticated && (
             <button
@@ -103,6 +109,9 @@ const Navbar: React.FC<{ dark: boolean; isAuthenticated: boolean; onLogout: () =
             <Link to="/explore" onClick={() => setMobileMenuOpen(false)} className="hover:text-primary transition-colors">Explore</Link>
             {isAuthenticated && (
               <Link to="/trips" onClick={() => setMobileMenuOpen(false)} className="hover:text-primary transition-colors">My Trips</Link>
+            )}
+            {user?.role === "ADMIN" && (
+              <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="hover:text-primary transition-colors">Admin Dashboard</Link>
             )}
             {isAuthenticated && (
               <button

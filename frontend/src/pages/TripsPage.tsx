@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { tripsApi, type Trip } from "../api/trips";
 
@@ -26,6 +27,7 @@ const formatDate = (d: string) =>
 const TripsPage: React.FC = () => {
   const navigate = useNavigate();
   const { dark } = useTheme();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [groupBy, setGroupBy] = useState("status");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -95,6 +97,11 @@ const TripsPage: React.FC = () => {
           <div className="flex items-center justify-between h-16">
             <Link to="/"><img src="/Traveloop.png" alt="Traveloop" className="h-9" /></Link>
             <div className="flex items-center gap-3">
+              {user?.role === "ADMIN" && (
+                <Link to="/admin" className="text-xs font-bold px-3 py-1.5 rounded-lg border border-primary text-primary hover:bg-primary/10 transition uppercase tracking-wider">
+                  Admin
+                </Link>
+              )}
               <ThemeToggle />
               <Link to="/profile" className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-70 transition"
                 style={{ background: dark ? "rgba(42,33,26,0.9)" : "rgba(243,233,220,0.8)", border: "1.5px solid rgba(198,93,58,0.3)" }}>
@@ -308,6 +315,14 @@ const TripCard: React.FC<{
             >
               <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               Checklist
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); navigate(`/invoice?tripId=${trip.id}`); }}
+              className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-md text-xs font-medium transition hover:bg-secondary/20 dark:hover:bg-dark-border/40"
+              style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
+            >
+              <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+              Budget
             </button>
           </div>
 

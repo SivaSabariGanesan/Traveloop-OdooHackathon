@@ -5,6 +5,7 @@ Traveloop is a comprehensive, AI-powered travel planning and management platform
 ## 🚀 Features
 
 - **AI Trip Planner**: Leveraging Google's Gemini AI to generate tailored itineraries based on your preferences.
+- **Role-Based Access Control (RBAC)**: Secure multi-tier access for Users and Admins. Users manage their personal trips, while Admins have oversight of all platform data and analytics.
 - **Interactive Itinerary**: Manage your daily stops, activities, and transport in a sleek, responsive interface.
 - **Financial Dashboard**: Full-stack Expense Invoice and Budgeting module to track spending vs. budget.
 - **Travel Utilities**: Integrated **Notes** and **Checklists** to ensure you never forget a detail or a toothbrush.
@@ -95,6 +96,12 @@ The frontend implements a high-performance custom Theme Context for dark/light m
 
 ### 5. Observability
 Equipped with a Prometheus metrics exporter, the backend monitors request duration, error rates, and throughput, allowing for Grafana visualization and performance bottleneck identification.
+
+### 6. Admin Control Center
+A dedicated administrative interface for platform management.
+- **Global Oversight**: Admins can view and monitor all trips created on the platform.
+- **Analytics & Insights**: Integrated dashboard to track user engagement and platform growth.
+- **Privileged Access**: Secured through a combination of frontend route guards and backend role-based middleware, ensuring sensitive data is only accessible to authorized personnel.
 
 ## 👥 Contributors
 
