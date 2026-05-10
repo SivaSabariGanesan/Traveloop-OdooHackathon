@@ -150,9 +150,12 @@ Return a JSON array:
     return JSON.parse(json) as DestinationInsights;
   },
 
-  getStopSuggestions: async (destination: string): Promise<StopSuggestion[]> => {
+  getStopSuggestions: async (destination: string, excludeCities: string[] = []): Promise<StopSuggestion[]> => {
+    const exclusion = excludeCities.length
+      ? `\nDo NOT suggest any of these already-added places: ${excludeCities.join(", ")}.`
+      : "";
     const prompt = `Suggest 6 must-visit places, landmarks, or attractions in ${destination} that a traveler should add as stops in their itinerary.
-These should be specific places within ${destination}, not other cities.
+These should be specific places within ${destination}, not other cities.${exclusion}
 For each place include the name (as city field), a short area/district (as country field), a one-sentence description, recommended number of days or hours to spend (as a number of days, use 1 for half-day visits), and 3 short highlights.
 Return a JSON array:
 [{"city":"place name","country":"area or district","description":"one sentence","recommendedDays":1,"highlights":["highlight1","highlight2","highlight3"]}]`;
