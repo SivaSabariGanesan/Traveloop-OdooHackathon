@@ -94,8 +94,15 @@ The frontend implements a high-performance custom Theme Context for dark/light m
 - **Authentication**: JWT-based stateless authentication with automatic token attachment via Axios interceptors.
 - **Relational Integrity**: Prisma handles cascading deletes (e.g., deleting a trip automatically cleans up its itinerary, notes, and invoices).
 
-### 5. Observability
-Equipped with a Prometheus metrics exporter, the backend monitors request duration, error rates, and throughput, allowing for Grafana visualization and performance bottleneck identification.
+### 5. Monitoring & Observability Stack
+The platform is equipped with a professional-grade monitoring stack to ensure high availability and performance:
+- **Prometheus**: Acts as the primary metrics store. It scrapes the backend's `/metrics` endpoint every 15 seconds to collect data on HTTP request frequency, status codes, and response latencies.
+- **Grafana**: Provides a visual layer for the collected metrics. We use custom dashboards to monitor:
+  - **RPS (Requests Per Second)**: Identifying traffic spikes.
+  - **Error Rates**: Real-time alerting on 4xx/5xx responses.
+  - **System Load**: Monitoring CPU and Memory usage of the Bun runtime.
+- **Loki**: Integrated for log aggregation. Instead of manual log inspection, Loki allows us to query and visualize backend logs directly within Grafana, making debugging of production issues significantly faster.
+- **Winston & Loki-Transport**: The backend uses a specialized Winston transport to stream structured logs directly to the Loki instance.
 
 ### 6. Admin Control Center
 A dedicated administrative interface for platform management.
