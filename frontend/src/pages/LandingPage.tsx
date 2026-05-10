@@ -239,7 +239,8 @@ const LandingPage: React.FC = () => {
 
       {/* Plan a Trip FAB */}
       <div className="fixed bottom-6 right-6 z-50">
-        <button
+        <Link
+          to="/plan"
           className="flex items-center gap-2 px-5 py-3 rounded-2xl text-white font-semibold text-sm transition hover:opacity-90 active:scale-95"
           style={{ background: "#C65D3A", boxShadow: "0 6px 20px rgba(198,93,58,0.4)" }}
         >
@@ -249,7 +250,7 @@ const LandingPage: React.FC = () => {
             <path d="M12 5v14M5 12h14" />
           </svg>
           Plan a trip
-        </button>
+        </Link>
       </div>
     </div>
   );
