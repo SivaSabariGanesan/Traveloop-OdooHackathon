@@ -29,10 +29,10 @@ export const itineraryApi = {
   getStops: (tripId: string) =>
     api.get<{ status: string; data: Stop[] }>(`/trips/${tripId}/stops`),
 
-  createStop: (tripId: string, data: Omit<Stop, 'id' | 'tripId' | 'activities'>) =>
+  createStop: (tripId: string, data: { city: string; arrivalDate: string; departureDate: string; country?: string; notes?: string; order?: number }) =>
     api.post<{ status: string; data: Stop }>(`/trips/${tripId}/stops`, data),
 
-  updateStop: (tripId: string, stopId: string, data: Partial<Stop>) =>
+  updateStop: (tripId: string, stopId: string, data: Partial<Stop> | Record<string, unknown>) =>
     api.patch<{ status: string; data: Stop }>(`/trips/${tripId}/stops/${stopId}`, data),
 
   deleteStop: (tripId: string, stopId: string) =>

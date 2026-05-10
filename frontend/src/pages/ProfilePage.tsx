@@ -38,7 +38,7 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     tripsApi.getAll()
       .then((res) => setTrips(res.data.data))
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => setTripsLoading(false));
   }, []);
 
@@ -77,7 +77,6 @@ const ProfilePage: React.FC = () => {
       <div className="fixed top-0 right-0 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: "#D4A373" }} />
       <div className="fixed bottom-0 left-0 w-80 h-80 rounded-full opacity-15 blur-3xl pointer-events-none" style={{ background: "#C65D3A" }} />
 
-      {/* Nav */}
       <nav className="sticky top-0 z-50" style={{
         background: dark ? "rgba(28,22,18,0.88)" : "rgba(250,246,240,0.85)",
         backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
@@ -116,10 +115,12 @@ const ProfilePage: React.FC = () => {
               </button>
             ) : (
               <div className="flex gap-2">
-                <button onClick={() => { setIsEditing(false); setSaveError(null); }} className="px-4 py-2 rounded-xl font-medium hover:opacity-80 transition" style={inputStyle}>
+                <button onClick={() => { setIsEditing(false); setSaveError(null); }}
+                  className="px-4 py-2 rounded-xl font-medium hover:opacity-80 transition" style={inputStyle}>
                   Cancel
                 </button>
-                <button onClick={handleSave} disabled={isSaving} className="px-4 py-2 rounded-xl font-medium text-white hover:opacity-80 transition"
+                <button onClick={handleSave} disabled={isSaving}
+                  className="px-4 py-2 rounded-xl font-medium text-white hover:opacity-80 transition"
                   style={{ background: "#C65D3A", opacity: isSaving ? 0.7 : 1 }}>
                   {isSaving ? "Saving..." : "Save"}
                 </button>
@@ -134,7 +135,6 @@ const ProfilePage: React.FC = () => {
             </p>
           )}
 
-          {/* Avatar + fields */}
           <div className="flex flex-col md:flex-row gap-8">
             <div className="flex flex-col items-center gap-3">
               <div className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold text-white"
@@ -147,22 +147,24 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
+              {([
                 { label: "First Name", key: "firstName" as const },
                 { label: "Last Name", key: "lastName" as const },
                 { label: "Email", key: "email" as const, disabled: true },
                 { label: "Phone", key: "phone" as const },
                 { label: "City", key: "city" as const },
                 { label: "Country", key: "country" as const },
-              ].map(({ label, key, disabled }) => (
+              ] as { label: string; key: keyof ProfileForm; disabled?: boolean }[]).map(({ label, key, disabled }) => (
                 <div key={key}>
                   <label className="block text-sm font-semibold mb-1.5"
                     style={{ color: dark ? "rgba(240,230,211,0.8)" : "rgba(59,47,47,0.8)" }}>
                     {label}
                   </label>
                   {isEditing && !disabled ? (
-                    <input value={profile[key]} onChange={(e) => setProfile((p) => ({ ...p, [key]: e.target.value }))}
-                      className="w-full px-4 py-2.5 rounded-xl focus:outline-none transition" style={inputStyle} />
+                    <input value={profile[key]}
+                      onChange={(e) => setProfile((p) => ({ ...p, [key]: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl focus:outline-none transition"
+                      style={inputStyle} />
                   ) : (
                     <p className="px-4 py-2.5 rounded-xl text-sm" style={{ ...inputStyle, opacity: 0.85 }}>
                       {profile[key] || "—"}
@@ -174,34 +176,45 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Upcoming trips */}
+        {/* Upcoming & Ongoing */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold mb-4" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
             Upcoming & Ongoing Trips
           </h2>
           {tripsLoading ? (
             <div className="flex justify-center py-8">
-              <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: "#C65D3A", borderTopColor: "transparent" }} />
+              <div className="w-6 h-6 rounded-full border-2 animate-spin"
+                style={{ borderColor: "#C65D3A", borderTopColor: "transparent" }} />
             </div>
           ) : upcomingTrips.length === 0 ? (
-            <p className="text-sm" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}>No upcoming trips.</p>
+            <p className="text-sm" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}>
+              No upcoming trips.
+            </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {upcomingTrips.map((trip) => <TripCard key={trip.id} trip={trip} dark={dark} onClick={() => navigate(`/itinerary?tripId=${trip.id}`)} />)}
+              {upcomingTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} dark={dark}
+                  onClick={() => navigate(`/itinerary?tripId=${trip.id}`)} />
+              ))}
             </div>
           )}
         </div>
 
-        {/* Completed trips */}
+        {/* Completed */}
         <div>
           <h2 className="text-lg font-semibold mb-4" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>
             Completed Trips
           </h2>
           {!tripsLoading && completedTrips.length === 0 ? (
-            <p className="text-sm" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}>No completed trips yet.</p>
+            <p className="text-sm" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}>
+              No completed trips yet.
+            </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {completedTrips.map((trip) => <TripCard key={trip.id} trip={trip} dark={dark} onClick={() => navigate(`/itinerary?tripId=${trip.id}`)} />)}
+              {completedTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} dark={dark}
+                  onClick={() => navigate(`/itinerary?tripId=${trip.id}`)} />
+              ))}
             </div>
           )}
         </div>
@@ -210,74 +223,6 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-<<<<<<< HEAD
-// Trip Card Component
-const TripCard: React.FC<{ trip: Trip; dark: boolean }> = ({ trip, dark }) => {
-  return (
-    <div
-      className="rounded-2xl overflow-hidden relative group cursor-pointer transition-transform duration-200 hover:scale-[1.02] flex flex-col"
-      style={{
-        height: "280px",
-        background: dark ? "rgba(42,33,26,0.7)" : "rgba(255,255,255,0.6)",
-        border: dark
-          ? "1px solid rgba(61,46,34,0.8)"
-          : "1px solid rgba(230,211,179,0.5)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        boxShadow: dark
-          ? "0 4px 12px rgba(0,0,0,0.3)"
-          : "0 4px 12px rgba(198,93,58,0.12)",
-      }}
-    >
-      {/* Trip Image */}
-      <div className="relative h-[160px] overflow-hidden flex-shrink-0">
-        <img
-          src={trip.img}
-          alt={trip.destination}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(28,22,18,0.6) 0%, transparent 50%)",
-          }}
-        />
-      </div>
-
-      {/* Trip Info */}
-      <div className="p-4 flex flex-col flex-1">
-        <h3
-          className="font-semibold text-base mb-1"
-          style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}
-        >
-          {trip.destination}
-        </h3>
-        <p
-          className="text-sm mb-2"
-          style={{ color: dark ? "rgba(240,230,211,0.7)" : "rgba(59,47,47,0.7)" }}
-        >
-          {trip.country}
-        </p>
-        <div className="flex items-center justify-between mt-auto">
-          <p
-            className="text-xs"
-            style={{ color: dark ? "rgba(240,230,211,0.6)" : "rgba(59,47,47,0.6)" }}
-          >
-            {trip.date} · {trip.duration}
-          </p>
-          <button
-            className="px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 hover:opacity-90 flex-shrink-0"
-            style={{
-              background: "#C65D3A",
-              color: "white",
-              boxShadow: "0 2px 8px rgba(198,93,58,0.3)",
-            }}
-          >
-            View
-          </button>
-        </div>
-=======
 const TripCard: React.FC<{ trip: Trip; dark: boolean; onClick: () => void }> = ({ trip, dark, onClick }) => {
   const start = new Date(trip.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const end = new Date(trip.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -290,13 +235,15 @@ const TripCard: React.FC<{ trip: Trip; dark: boolean; onClick: () => void }> = (
         backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
         boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(198,93,58,0.1)",
       }}>
-      <div className="h-32 relative overflow-hidden" style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(212,163,115,0.2)" }}>
+      <div className="h-32 relative overflow-hidden"
+        style={{ background: dark ? "rgba(61,46,34,0.5)" : "rgba(212,163,115,0.2)" }}>
         {trip.coverPhoto ? (
           <img src={`http://localhost:5000${trip.coverPhoto}`} alt={trip.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <svg className="w-10 h-10 opacity-25" fill="none" stroke="#C65D3A" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064" />
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064" />
             </svg>
           </div>
         )}
@@ -307,9 +254,14 @@ const TripCard: React.FC<{ trip: Trip; dark: boolean; onClick: () => void }> = (
       </div>
       <div className="p-3">
         <p className="font-semibold text-sm truncate" style={{ color: dark ? "#F0E6D3" : "#3B2F2F" }}>{trip.name}</p>
-        {trip.destination && <p className="text-xs truncate mt-0.5" style={{ color: dark ? "rgba(240,230,211,0.55)" : "rgba(59,47,47,0.55)" }}>{trip.destination}</p>}
-        <p className="text-xs mt-1" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}>{start} – {end}</p>
->>>>>>> 1570dfbf63a8be5464622bb3588d86234bb07bb3
+        {trip.destination && (
+          <p className="text-xs truncate mt-0.5" style={{ color: dark ? "rgba(240,230,211,0.55)" : "rgba(59,47,47,0.55)" }}>
+            {trip.destination}
+          </p>
+        )}
+        <p className="text-xs mt-1" style={{ color: dark ? "rgba(240,230,211,0.4)" : "rgba(59,47,47,0.4)" }}>
+          {start} – {end}
+        </p>
       </div>
     </div>
   );
