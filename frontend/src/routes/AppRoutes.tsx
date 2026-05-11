@@ -12,6 +12,7 @@ import NotesPage from "../pages/NotesPage";
 import ChecklistPage from "../pages/ChecklistPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import InvoicePage from "../pages/InvoicePage";
+import CommunityPage from "../pages/CommunityPage";
 
 const AppRoutes = () => {
   return (
@@ -29,6 +30,7 @@ const AppRoutes = () => {
       <Route path="/checklist" element={<ChecklistPage />} />
       <Route path="/invoice" element={<InvoicePage />} />
       <Route path="/admin" element={<AdminDashboardPage />} />
+      <Route path="/community" element={<CommunityPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
